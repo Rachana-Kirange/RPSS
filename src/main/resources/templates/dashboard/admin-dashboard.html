@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/admin/users}">Users</a>
+            <a th:href="@{/admin/clubs}">Clubs</a>
+            <a th:href="@{/admin/events/pending}">Pending Events</a>
+            <a th:href="@{/admin/reports}">Reports</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-shell page-stack">
+        <section class="dashboard-head">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Monitor event approvals, club activity, and overall portal momentum from one command center.</p>
+            </div>
+            <div class="stat-chip-row">
+                <div class="stat-chip">Active Clubs: <strong th:text="${totalClubs}">0</strong></div>
+            </div>
+        </section>
+
+        <section class="grid-4">
+            <article class="grid-card tone-amber">
+                <h3>Pending Events</h3>
+                <p class="metric" th:text="${pendingEventCount}">0</p>
+            </article>
+            <article class="grid-card tone-blue">
+                <h3>Approved Events</h3>
+                <p class="metric" th:text="${approvedEventCount}">0</p>
+            </article>
+            <article class="grid-card tone-green">
+                <h3>Completed Events</h3>
+                <p class="metric" th:text="${completedEventCount}">0</p>
+            </article>
+            <article class="grid-card tone-teal">
+                <h3>Active Clubs</h3>
+                <p class="metric" th:text="${totalClubs}">0</p>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="list-card">
+                <h3>Pending Approval Queue</h3>
+                <div th:if="${#lists.isEmpty(pendingEvents)}" class="empty-state">
+                    No pending events need approval right now.
+                </div>
+                <div th:unless="${#lists.isEmpty(pendingEvents)}" class="event-list">
+                    <div class="event-item" th:each="event : ${pendingEvents}">
+                        <h4 th:text="${event.title}">Event title</h4>
+                        <div class="event-meta">
+                            <strong>Club:</strong> <span th:text="${event.club.clubName}">club</span><br>
+                            <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                            <strong>Venue:</strong> <span th:text="${event.venue}">venue</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="list-card">
+                <h3>Active Clubs</h3>
+                <div th:if="${#lists.isEmpty(clubs)}" class="empty-state">
+                    No active clubs found.
+                </div>
+                <div th:unless="${#lists.isEmpty(clubs)}" class="event-list">
+                    <div class="event-item" th:each="club : ${clubs}">
+                        <h4 th:text="${club.clubName}">Club name</h4>
+                        <div class="event-meta">
+                            <strong>Head:</strong> <span th:text="${club.clubHeadName}">club head</span><br>
+                            <strong>Events:</strong> <span th:text="${club.totalEvents}">0</span><br>
+                            <span th:text="${club.description}">description</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+</body>
+</html>

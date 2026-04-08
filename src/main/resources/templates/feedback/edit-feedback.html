@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Feedback | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events/{eventId}(eventId=${feedback.event.eventId})}">Back to Event</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Edit Feedback</h2>
+        <form th:action="@{/feedback/{feedbackId}/update(feedbackId=${feedback.feedbackId})}" th:object="${feedbackSubmitDTO}" method="post" style="display:grid; gap:16px;">
+            <label>
+                Rating
+                <select th:field="*{rating}" required>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </label>
+
+            <label>
+                Comment
+                <textarea th:field="*{comment}" rows="6" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <button type="submit">Update Feedback</button>
+        </form>
+
+        <form th:action="@{/feedback/{feedbackId}/delete(feedbackId=${feedback.feedbackId})}" method="post" style="margin-top: 12px;">
+            <button type="submit" style="background: var(--red);">Delete Feedback</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

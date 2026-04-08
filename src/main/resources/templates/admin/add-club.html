@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Club | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/admin/clubs}">Manage Clubs</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Add Club</h2>
+        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
+        <form th:action="@{/admin/clubs/add}" method="post" style="display:grid; gap:16px;">
+            <label>
+                Club Name
+                <input type="text" name="clubName" required>
+            </label>
+
+            <label>
+                Description
+                <textarea name="description" rows="5" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <label>
+                Club Head
+                <select name="clubHeadId" required>
+                    <option value="">Select club head</option>
+                    <option th:each="clubHead : ${clubHeads}" th:value="${clubHead.userId}" th:text="${clubHead.name + ' (' + clubHead.email + ')'}"></option>
+                </select>
+            </label>
+
+            <button type="submit">Create Club</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

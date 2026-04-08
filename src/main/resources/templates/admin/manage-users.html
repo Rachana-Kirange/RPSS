@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/users/add}">Add User</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Manage Users</h2>
+        <div th:if="${#lists.isEmpty(users)}" class="empty-state">No users available.</div>
+        <div th:unless="${#lists.isEmpty(users)}" class="event-list">
+            <div class="event-item" th:each="user : ${users}">
+                <h4 th:text="${user.name}">User</h4>
+                <div class="event-meta">
+                    <strong>Email:</strong> <span th:text="${user.email}">email</span><br>
+                    <strong>Phone:</strong> <span th:text="${user.phone}">phone</span><br>
+                    <strong>Role:</strong> <span th:text="${user.roleDisplayName}">role</span>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

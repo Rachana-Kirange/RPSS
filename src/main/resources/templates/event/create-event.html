@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/events}">Events</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 18px;">
+        <div class="section-head">
+            <div>
+                <h2>Create Event Proposal</h2>
+                <p th:if="${club != null}">Submitting for <strong th:text="${club.clubName}">Club</strong>.</p>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
+
+        <form th:action="@{/events/create}" th:object="${eventCreateDTO}" method="post" style="display:grid; gap:16px;">
+            <label>
+                Event Title
+                <input type="text" th:field="*{title}" required>
+            </label>
+
+            <label>
+                Description
+                <textarea th:field="*{description}" rows="6" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <div class="grid-2">
+                <label>
+                    Date & Time
+                    <input type="datetime-local" th:field="*{eventDateTime}" required>
+                </label>
+
+                <label>
+                    Venue
+                    <input type="text" th:field="*{venue}" required>
+                </label>
+            </div>
+
+            <label>
+                Max Capacity
+                <input type="number" th:field="*{maxCapacity}" min="5" required>
+            </label>
+
+            <button type="submit">Submit Event</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

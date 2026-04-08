@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/about}">About</a>
+            <a th:href="@{/contact}">Contact</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px;">
+        <div class="section-head">
+            <div>
+                <h2>Frequently Asked Questions</h2>
+                <p>Quick answers for the main user actions in the portal.</p>
+            </div>
+        </div>
+        <div class="simple-list">
+            <section class="simple-item">
+                <h4>How do I join an event?</h4>
+                <div class="simple-meta">Register from the event details page after signing in as a participant.</div>
+            </section>
+            <section class="simple-item">
+                <h4>How are events approved?</h4>
+                <div class="simple-meta">Club heads submit events, then admins review and approve or reject them.</div>
+            </section>
+            <section class="simple-item">
+                <h4>When do I get a pass?</h4>
+                <div class="simple-meta">Free events can generate passes immediately after registration. Paid events can generate them after payment completion logic is added.</div>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>

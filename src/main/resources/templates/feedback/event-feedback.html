@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Feedback | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events/{eventId}(eventId=${event.eventId})}">Back to Event</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="content-card" style="padding: 36px;">
+            <h2 th:text="'Feedback for ' + ${event.title}">Event Feedback</h2>
+            <div class="stat-chip-row" style="margin-top: 16px;">
+                <div class="stat-chip">Average Rating: <strong th:text="${averageRating}">0</strong></div>
+                <div class="stat-chip">Feedback Count: <strong th:text="${feedbackCount}">0</strong></div>
+            </div>
+        </section>
+
+        <section class="list-card">
+            <div th:if="${#lists.isEmpty(feedbackList)}" class="empty-state">No feedback has been submitted yet.</div>
+            <div th:unless="${#lists.isEmpty(feedbackList)}" class="event-list">
+                <div class="event-item" th:each="feedback : ${feedbackList}">
+                    <h4 th:text="${feedback.participant.name}">Participant</h4>
+                    <div class="event-meta">
+                        <strong>Rating:</strong> <span th:text="${feedback.ratingStars}">stars</span><br>
+                        <strong>Comment:</strong> <span th:text="${feedback.comment}">comment</span><br>
+                        <strong>Submitted:</strong> <span th:text="${feedback.submittedDate}">date</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

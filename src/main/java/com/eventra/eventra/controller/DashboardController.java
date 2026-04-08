@@ -1,0 +1,145 @@
+package com.eventra.eventra.controller;
+
+import com.eventra.eventra.model.User;
+import com.eventra.eventra.enums.RoleEnum;
+import com.eventra.eventra.service.*;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/dashboard")
+public class DashboardController {
+
+    private final EventService eventService;
+    private final RegistrationService registrationService;
+    private final FeedbackService feedbackService;
+    private final ClubService clubService;
+
+    public DashboardController(EventService eventService, RegistrationService registrationService,
+                               FeedbackService feedbackService, ClubService clubService) {
+        this.eventService = eventService;
+        this.registrationService = registrationService;
+        this.feedbackService = feedbackService;
+        this.clubService = clubService;
+    }
+
+    /**
+     * Main dashboard - redirects based on role
+     */
+    @GetMapping
+    public String dashboard(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("loggedInUser");
+
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
+
+        // Verify role is loaded
+        if (user.getRole() == null) {
+            model.addAttribute("error", "User role not assigned. Please contact administrator.");
+            return "error/unauthorized";
+        }
+
+        RoleEnum role = user.getRole().getRoleName();
+
+        switch (role) {
+            case PARTICIPANT:
+                return participantDashboard(user, model);
+            case CLUB_HEAD:
+                return clubHeadDashboard(user, model);
+            case ADMIN:
+                return adminDashboard(user, model);
+            default:
+                return "redirect:/auth/login";
+        }
+    }
+
+    /**
+     * Participant Dashboard
+     */
+    private String participantDashboard(User participant, Model model) {
+        try {
+            var registrations = registrationService.getParticipantRegistrations(participant.getUserId());
+            model.addAttribute("registrations", registrations);
+            model.addAttribute("myRegistrationsCount", registrations.size());
+            model.addAttribute("upcomingEvents", eventService.getUpcomingApprovedEvents());
+            return "dashboard/participant-dashboard";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading participant dashboard: " + e.getMessage());
+            return "error/not-found";
+        }
+    }
+
+    /**
+     * Club Head Dashboard
+     */
+    private String clubHeadDashboard(User clubHead, Model model) {
+        try {
+            var club = clubService.getClubByClubHead(clubHead.getUserId());
+
+            if (club.isEmpty()) {
+                model.addAttribute("error", "You are not assigned as a club head");
+                return "error/not-assigned";
+            }
+
+            var events = eventService.getEventsByCreator(clubHead.getUserId());
+            var pendingEvents = events.stream()
+                .filter(e -> e.getStatus().name().equals("PENDING"))
+                .toList();
+            var approvedEvents = events.stream()
+                .filter(e -> e.getStatus().name().equals("APPROVED"))
+                .toList();
+
+            long totalRegistrations = events.stream()
+                .mapToLong(e -> registrationService.getEventRegistrations(e.getEventId()).size())
+                .sum();
+
+            model.addAttribute("club", club.get());
+            model.addAttribute("totalEvents", events.size());
+            model.addAttribute("pendingEvents", pendingEvents.size());
+            model.addAttribute("approvedEvents", approvedEvents.size());
+            model.addAttribute("totalRegistrations", totalRegistrations);
+            model.addAttribute("events", events);
+
+            return "dashboard/clubhead-dashboard";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading club head dashboard: " + e.getMessage());
+            return "error/not-found";
+        }
+    }
+
+    /**
+     * Admin Dashboard
+     */
+    private String adminDashboard(User admin, Model model) {
+        try {
+            long pendingEventCount = eventService.getEventCountByStatus(
+                com.eventra.eventra.enums.EventStatus.PENDING
+            );
+            long approvedEventCount = eventService.getEventCountByStatus(
+                com.eventra.eventra.enums.EventStatus.APPROVED
+            );
+            long completedEventCount = eventService.getEventCountByStatus(
+                com.eventra.eventra.enums.EventStatus.COMPLETED
+            );
+
+            var pendingEvents = eventService.getPendingEvents();
+            var clubs = clubService.getAllActiveClubs();
+
+            model.addAttribute("pendingEventCount", pendingEventCount);
+            model.addAttribute("approvedEventCount", approvedEventCount);
+            model.addAttribute("completedEventCount", completedEventCount);
+            model.addAttribute("pendingEvents", pendingEvents);
+            model.addAttribute("clubs", clubs);
+            model.addAttribute("totalClubs", clubs.size());
+
+            return "dashboard/admin-dashboard";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading admin dashboard: " + e.getMessage());
+            return "error/not-found";
+        }
+    }
+}

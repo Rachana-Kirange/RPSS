@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Pass | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/registrations/my-registrations}">My Registrations</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Event Pass</h2>
+        <p class="muted" th:text="${registration.event.title}">Event title</p>
+
+        <div th:if="${pass == null}" class="empty-state">
+            Your pass has not been generated yet.
+        </div>
+
+        <div th:if="${pass != null}" class="grid-2">
+            <div class="grid-card">
+                <h3>Pass Details</h3>
+                <p class="simple-meta">
+                    <strong>QR Code:</strong> <span th:text="${pass.qrCode}">qr</span><br>
+                    <strong>Generated:</strong> <span th:text="${pass.generatedDate}">date</span><br>
+                    <strong>Expiry:</strong> <span th:text="${pass.expiryDate}">date</span>
+                </p>
+            </div>
+            <div class="grid-card">
+                <h3>QR Image Path</h3>
+                <p class="muted" th:text="${pass.qrImagePath}">path</p>
+                <a class="button-link primary" th:href="@{/registrations/{registrationId}/download-pass(registrationId=${registration.registrationId})}">Download Pass</a>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

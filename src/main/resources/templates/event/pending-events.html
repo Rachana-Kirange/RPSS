@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Events | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/events/pending}">Admin Review</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Pending Events</h2>
+        <div th:if="${#lists.isEmpty(pendingEvents)}" class="empty-state">No events are waiting for approval.</div>
+        <div th:unless="${#lists.isEmpty(pendingEvents)}" class="event-list">
+            <div class="event-item" th:each="event : ${pendingEvents}">
+                <h4 th:text="${event.title}">Event</h4>
+                <div class="event-meta">
+                    <strong>Club:</strong> <span th:text="${event.club.clubName}">club</span><br>
+                    <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                    <a class="button-link primary" th:href="@{/admin/events/{eventId}/review(eventId=${event.eventId})}">Review</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

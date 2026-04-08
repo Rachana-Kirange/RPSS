@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Not Assigned | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <div class="section-head">
+            <div>
+                <h2>Role Assignment Needed</h2>
+                <p th:text="${error != null ? error : 'Your account is active, but the required club assignment has not been completed yet.'}">Assignment message</p>
+            </div>
+        </div>
+        <a class="button-link primary" th:href="@{/dashboard}">Back to Dashboard</a>
+    </main>
+</div>
+</body>
+</html>

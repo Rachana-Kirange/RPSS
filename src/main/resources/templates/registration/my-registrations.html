@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Registrations | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events}">Events</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>My Registrations</h2>
+        <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">You have not registered for any events yet.</div>
+        <div th:unless="${#lists.isEmpty(registrations)}" class="event-list">
+            <div class="event-item" th:each="registration : ${registrations}">
+                <h4 th:text="${registration.event.title}">Event</h4>
+                <div class="event-meta">
+                    <strong>Status:</strong> <span th:text="${registration.status}">status</span><br>
+                    <strong>Payment:</strong> <span th:text="${registration.paymentStatus}">payment</span><br>
+                    <strong>Date:</strong> <span th:text="${registration.event.eventDate}">date</span>
+                </div>
+                <div class="quick-links">
+                    <a class="button-link" th:href="@{/registrations/{registrationId}/pass(registrationId=${registration.registrationId})}">View Pass</a>
+                    <form th:action="@{/registrations/{registrationId}/cancel(registrationId=${registration.registrationId})}" method="post">
+                        <button type="submit" style="background: var(--red);">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

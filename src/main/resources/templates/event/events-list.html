@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/events/create}">Create Event</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="content-card" style="padding: 36px;">
+            <div class="section-head">
+                <div>
+                    <h2>Approved Events</h2>
+                    <p>Browse all upcoming approved events currently available in the portal.</p>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(events)}" class="empty-state">
+                No approved events are available right now.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(events)}" class="grid-3">
+                <article class="grid-card" th:each="event : ${events}">
+                    <div class="badge" th:text="${event.status}">APPROVED</div>
+                    <h3 th:text="${event.title}">Title</h3>
+                    <p class="muted" th:text="${event.description}">Description</p>
+                    <p class="simple-meta">
+                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                        <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                        <strong>Seats Left:</strong> <span th:text="${event.availableSeats}">0</span>
+                    </p>
+                    <a class="button-link primary" th:href="@{/events/{eventId}(eventId=${event.eventId})}">View Details</a>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

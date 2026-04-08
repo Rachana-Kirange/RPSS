@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events}">All Events</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="hero-card">
+            <div class="hero-copy">
+                <div class="badge" th:text="${event.status}">APPROVED</div>
+                <h1 th:text="${event.title}">Event Title</h1>
+                <p th:text="${event.description}">Description</p>
+                <div class="quick-links">
+                    <a class="button-link" th:href="@{/feedback/event/{eventId}/all(eventId=${event.eventId})}">View Feedback</a>
+                </div>
+            </div>
+            <aside class="hero-side">
+                <div class="grid-card">
+                    <h3>Event Snapshot</h3>
+                    <p class="simple-meta">
+                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                        <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                        <strong>Capacity:</strong> <span th:text="${event.maxCapacity}">0</span><br>
+                        <strong>Registrations:</strong> <span th:text="${registrationCount}">0</span><br>
+                        <strong>Available Seats:</strong> <span th:text="${availableSeats}">0</span>
+                    </p>
+                </div>
+                <div class="grid-card">
+                    <h3>Registration</h3>
+                    <div th:if="${isRegistered != null and isRegistered}" class="muted">
+                        You are already registered for this event.
+                    </div>
+                    <form th:if="${isRegistered == null or !isRegistered}" th:action="@{/registrations/register/{eventId}(eventId=${event.eventId})}" method="post">
+                        <button type="submit">Register Now</button>
+                    </form>
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+</body>
+</html>

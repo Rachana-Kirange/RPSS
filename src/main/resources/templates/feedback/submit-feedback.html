@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events/{eventId}(eventId=${event.eventId})}">Back to Event</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2 th:text="'Submit Feedback for ' + ${event.title}">Submit Feedback</h2>
+        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
+
+        <form th:action="@{/feedback/event/{eventId}(eventId=${event.eventId})}" th:object="${feedbackSubmitDTO}" method="post" style="display:grid; gap:16px;">
+            <label>
+                Rating
+                <select th:field="*{rating}" required>
+                    <option value="">Select rating</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </label>
+
+            <label>
+                Comment
+                <textarea th:field="*{comment}" rows="6" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <button type="submit">Submit Feedback</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

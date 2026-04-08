@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Clubs | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/clubs/add}">Add Club</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Manage Clubs</h2>
+        <div th:if="${#lists.isEmpty(clubs)}" class="empty-state">No clubs found.</div>
+        <div th:unless="${#lists.isEmpty(clubs)}" class="event-list">
+            <div class="event-item" th:each="club : ${clubs}">
+                <h4 th:text="${club.clubName}">Club</h4>
+                <div class="event-meta">
+                    <strong>Head:</strong> <span th:text="${club.clubHeadName}">head</span><br>
+                    <strong>Status:</strong> <span th:text="${club.isActive ? 'Active' : 'Inactive'}">status</span><br>
+                    <span th:text="${club.description}">description</span>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

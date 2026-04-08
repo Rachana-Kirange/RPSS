@@ -1,0 +1,174 @@
+package com.eventra.eventra.service;
+
+import com.eventra.eventra.model.Event;
+import com.eventra.eventra.model.Club;
+import com.eventra.eventra.model.User;
+import com.eventra.eventra.enums.EventStatus;
+import com.eventra.eventra.repository.EventRepository;
+import com.eventra.eventra.repository.ClubRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+@Service
+@Transactional
+public class EventService {
+
+    private static final Logger log = Logger.getLogger(EventService.class.getName());
+
+    private final EventRepository eventRepository;
+    private final ClubRepository clubRepository;
+
+    public EventService(EventRepository eventRepository, ClubRepository clubRepository) {
+        this.eventRepository = eventRepository;
+        this.clubRepository = clubRepository;
+    }
+
+    /**
+     * Create a new event (Club Head)
+     */
+    public Event createEvent(String title, String description, LocalDateTime eventDate,
+                            String venue, Integer maxCapacity, Long clubId, User clubHead) {
+        log.info(String.format("Creating new event: %s by club: %d", title, clubId));
+
+        Club club = clubRepository.findById(clubId)
+            .orElseThrow(() -> new RuntimeException("Club not found"));
+
+        Event event = new Event();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setEventDate(eventDate);
+        event.setVenue(venue);
+        event.setMaxCapacity(maxCapacity);
+        event.setClub(club);
+        event.setCreatedBy(clubHead);
+        event.setStatus(EventStatus.PENDING);
+        event.setRequiresPayment(false);
+
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Approve event (Admin)
+     */
+    public Event approveEvent(Long eventId, User admin) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.approveEvent(admin);
+        log.info(String.format("Event approved: %d by admin: %s", eventId, admin.getEmail()));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Reject event (Admin)
+     */
+    public Event rejectEvent(Long eventId, User admin, String reason) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.rejectEvent(admin, reason);
+        log.warning(String.format("Event rejected: %d - Reason: %s", eventId, reason));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Get event by ID
+     */
+    public Optional<Event> getEventById(Long eventId) {
+        return eventRepository.findById(eventId);
+    }
+
+    /**
+     * Get all pending events
+     */
+    public List<Event> getPendingEvents() {
+        return eventRepository.findPendingEvents();
+    }
+
+    /**
+     * Get all approved upcoming events
+     */
+    public List<Event> getUpcomingApprovedEvents() {
+        return eventRepository.findUpcomingApprovedEvents();
+    }
+
+    /**
+     * Get events by status
+     */
+    public List<Event> getEventsByStatus(EventStatus status) {
+        return eventRepository.findByStatus(status);
+    }
+
+    /**
+     * Get events by club
+     */
+    public List<Event> getEventsByClub(Long clubId) {
+        return eventRepository.findByClubClubId(clubId);
+    }
+
+    /**
+     * Get events created by specific user (Club Head)
+     */
+    public List<Event> getEventsByCreator(Long userId) {
+        return eventRepository.findByCreatedByUserId(userId);
+    }
+
+    /**
+     * Update event (Club Head)
+     */
+    public Event updateEvent(Long eventId, String title, String description,
+                            LocalDateTime eventDate, String venue, Integer maxCapacity) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Only allow updates if event is still pending
+        if (!event.getStatus().equals(EventStatus.PENDING)) {
+            throw new IllegalArgumentException("Can only update pending events");
+        }
+
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setEventDate(eventDate);
+        event.setVenue(venue);
+        event.setMaxCapacity(maxCapacity);
+
+        log.info(String.format("Event updated: %d", eventId));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Complete event
+     */
+    public Event completeEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.setStatus(EventStatus.COMPLETED);
+        log.info(String.format("Event marked as completed: %d", eventId));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Cancel event
+     */
+    public Event cancelEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.setStatus(EventStatus.CANCELLED);
+        log.warning(String.format("Event cancelled: %d", eventId));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Get event count by status
+     */
+    public long getEventCountByStatus(EventStatus status) {
+        return eventRepository.countByStatus(status);
+    }
+}

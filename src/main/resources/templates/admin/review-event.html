@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Event | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/admin/events/pending}">Back to Pending Events</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="content-card" style="padding: 36px;">
+            <h2 th:text="${event.title}">Event Review</h2>
+            <p class="muted" th:text="${event.description}">Description</p>
+            <div class="grid-2">
+                <div class="grid-card">
+                    <h3>Event Details</h3>
+                    <p class="simple-meta">
+                        <strong>Club:</strong> <span th:text="${event.club.clubName}">club</span><br>
+                        <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                        <strong>Capacity:</strong> <span th:text="${event.maxCapacity}">0</span>
+                    </p>
+                </div>
+                <div class="grid-card">
+                    <h3>Review Actions</h3>
+                    <form th:action="@{/events/{eventId}/approve(eventId=${event.eventId})}" method="post" style="margin-bottom: 12px;">
+                        <button type="submit">Approve Event</button>
+                    </form>
+                    <form th:action="@{/events/{eventId}/reject(eventId=${event.eventId})}" method="post" style="display:grid; gap:12px;">
+                        <textarea name="reason" rows="4" placeholder="Reason for rejection" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+                        <button type="submit" style="background: var(--red);">Reject Event</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

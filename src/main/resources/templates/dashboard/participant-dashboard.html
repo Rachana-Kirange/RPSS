@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participant Dashboard | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events}">Events</a>
+            <a th:href="@{/registrations/my-registrations}">My Registrations</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-shell page-stack">
+        <section class="dashboard-head">
+            <div>
+                <h1>Participant Dashboard</h1>
+                <p>Track your registrations, explore upcoming events, and jump back into active campus experiences.</p>
+            </div>
+            <div class="stat-chip-row">
+                <div class="stat-chip">My Registrations: <strong th:text="${myRegistrationsCount}">0</strong></div>
+            </div>
+        </section>
+
+        <section class="grid-3">
+            <article class="grid-card tone-teal">
+                <h3>Registered Events</h3>
+                <p class="metric" th:text="${myRegistrationsCount}">0</p>
+            </article>
+            <article class="grid-card tone-blue">
+                <h3>Upcoming Events</h3>
+                <p class="metric" th:text="${#lists.size(upcomingEvents)}">0</p>
+            </article>
+            <article class="grid-card tone-amber">
+                <h3>Next Step</h3>
+                <p class="muted">Browse approved events and register for the ones that match your interests.</p>
+            </article>
+        </section>
+
+        <section class="grid-2">
+            <article class="list-card">
+                <h3>My Registrations</h3>
+                <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
+                    You have not registered for any events yet.
+                </div>
+                <div th:unless="${#lists.isEmpty(registrations)}" class="event-list">
+                    <div class="event-item" th:each="registration : ${registrations}">
+                        <h4 th:text="${registration.event.title}">Event</h4>
+                        <div class="event-meta">
+                            <strong>Status:</strong> <span th:text="${registration.status}">CONFIRMED</span><br>
+                            <strong>Venue:</strong> <span th:text="${registration.event.venue}">venue</span><br>
+                            <strong>Date:</strong> <span th:text="${registration.event.eventDate}">date</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="list-card">
+                <h3>Upcoming Approved Events</h3>
+                <div th:if="${#lists.isEmpty(upcomingEvents)}" class="empty-state">
+                    No upcoming approved events are available right now.
+                </div>
+                <div th:unless="${#lists.isEmpty(upcomingEvents)}" class="event-list">
+                    <div class="event-item" th:each="event : ${upcomingEvents}">
+                        <h4 th:text="${event.title}">Title</h4>
+                        <div class="event-meta">
+                            <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                            <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                            <strong>Seats:</strong> <span th:text="${event.availableSeats}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventra | RPSS Event Management</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/about}">About</a>
+            <a th:href="@{/contact}">Contact</a>
+            <a th:href="@{/faq}">FAQ</a>
+            <a th:href="@{/auth/login}">Login</a>
+            <a class="button-link primary" th:href="@{/auth/register}">Register</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="hero-card">
+            <div class="hero-copy">
+                <h1>Campus events, clubs, passes, and feedback in one place.</h1>
+                <p>Eventra gives RPSS a single rhythm for event discovery, registrations, club operations, approvals, and post-event reporting. Students stay informed, club heads stay organized, and admins stay in control.</p>
+                <div class="quick-links">
+                    <a class="button-link primary" th:href="@{/auth/register}">Get Started</a>
+                    <a class="button-link" th:href="@{/auth/login}">Open Dashboard</a>
+                </div>
+            </div>
+            <aside class="hero-side">
+                <div class="stat-chip-row">
+                    <div class="stat-chip">Upcoming Events: <strong th:text="${eventCount}">0</strong></div>
+                    <div class="stat-chip">Role-based Dashboards</div>
+                    <div class="stat-chip">QR Pass Support</div>
+                </div>
+                <div class="grid-card tone-teal">
+                    <h3>What this portal does</h3>
+                    <p class="muted">Browse approved events, join activities, manage clubs, approve proposals, and review event performance from tailored dashboards.</p>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section">
+            <div class="section-head">
+                <div>
+                    <h2>Upcoming Events</h2>
+                    <p>Approved events that students can explore and register for.</p>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(upcomingEvents)}" class="empty-state">
+                No approved upcoming events are available right now.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(upcomingEvents)}" class="grid-3">
+                <article class="grid-card" th:each="event : ${upcomingEvents}">
+                    <div class="badge" th:text="${event.status}">APPROVED</div>
+                    <h3 th:text="${event.title}">Event Title</h3>
+                    <p class="muted" th:text="${event.description}">Event description</p>
+                    <p class="simple-meta">
+                        <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
+                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                        <strong>Capacity:</strong> <span th:text="${event.maxCapacity}">0</span>
+                    </p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div class="footer-note">
+        RPSS Event Management System
+    </div>
+</div>
+</body>
+</html>

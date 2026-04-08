@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/contact}">Contact</a>
+            <a th:href="@{/faq}">FAQ</a>
+            <a th:href="@{/auth/login}">Login</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px;">
+        <div class="section-head">
+            <div>
+                <h2>About Eventra</h2>
+                <p>A focused portal for RPSS clubs, approvals, registrations, media, passes, and feedback.</p>
+            </div>
+        </div>
+        <div class="grid-3">
+            <section class="grid-card tone-teal">
+                <h3>For Students</h3>
+                <p class="muted">Discover upcoming events, register quickly, download passes, and submit feedback after attending.</p>
+            </section>
+            <section class="grid-card tone-amber">
+                <h3>For Club Heads</h3>
+                <p class="muted">Create event proposals, track status, review registrations, and keep your club activity pipeline visible.</p>
+            </section>
+            <section class="grid-card tone-blue">
+                <h3>For Admins</h3>
+                <p class="muted">Approve events, manage clubs and users, and generate event-level reports from one admin hub.</p>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>

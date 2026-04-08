@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Eventra</title>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #f5efe6 0%, #dce8f2 100%);
+            --card: rgba(255, 255, 255, 0.9);
+            --text: #1f2933;
+            --muted: #5f6c7b;
+            --primary: #0f766e;
+            --primary-dark: #115e59;
+            --border: rgba(31, 41, 51, 0.12);
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .shell {
+            width: min(960px, 100%);
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero {
+            padding: 56px;
+            background:
+                radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(14, 116, 144, 0.18), transparent 35%);
+        }
+
+        .hero h1 {
+            margin: 0 0 16px;
+            font-size: clamp(2.5rem, 4vw, 4rem);
+            line-height: 0.95;
+        }
+
+        .hero p {
+            margin: 0 0 24px;
+            max-width: 32rem;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border);
+            font-size: 0.92rem;
+        }
+
+        .panel {
+            padding: 40px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .panel h2 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+        }
+
+        .panel p {
+            margin: 0 0 24px;
+            color: var(--muted);
+        }
+
+        .message {
+            padding: 12px 14px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .message.error {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .message.success {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        form {
+            display: grid;
+            gap: 16px;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.9);
+            font: inherit;
+        }
+
+        input:focus {
+            outline: 2px solid rgba(15, 118, 110, 0.18);
+            border-color: var(--primary);
+        }
+
+        button {
+            border: 0;
+            border-radius: 16px;
+            padding: 14px 18px;
+            background: var(--primary);
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .foot {
+            margin-top: 20px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .foot a {
+            color: var(--primary-dark);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        @media (max-width: 800px) {
+            .shell {
+                grid-template-columns: 1fr;
+            }
+
+            .hero,
+            .panel {
+                padding: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="shell">
+    <section class="hero">
+        <h1>RPSS Event Management</h1>
+        <p>Sign in to manage registrations, publish club events, review approvals, and keep the whole campus activity calendar moving.</p>
+        <div class="pill-row">
+            <div class="pill">Participant Access</div>
+            <div class="pill">Club Head Dashboard</div>
+            <div class="pill">Admin Controls</div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Welcome Back</h2>
+        <p>Use your registered email and password to continue.</p>
+
+        <div th:if="${error}" class="message error" th:text="${error}"></div>
+        <div th:if="${success}" class="message success" th:text="${success}"></div>
+
+        <form th:action="@{/auth/login}" method="post">
+            <label for="email">
+                Email
+                <input id="email" name="email" type="email" placeholder="you@example.com" required>
+            </label>
+
+            <label for="password">
+                Password
+                <input id="password" name="password" type="password" placeholder="Enter password" required>
+            </label>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="foot">
+            New here? <a th:href="@{/auth/register}">Create an account</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

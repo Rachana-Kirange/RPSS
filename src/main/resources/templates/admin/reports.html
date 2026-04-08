@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/events/pending}">Pending Events</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2>Event Reports</h2>
+        <div th:if="${#lists.isEmpty(completedEvents)}" class="empty-state">No completed events are ready for reporting yet.</div>
+        <div th:unless="${#lists.isEmpty(completedEvents)}" class="event-list">
+            <div class="event-item" th:each="event : ${completedEvents}">
+                <h4 th:text="${event.title}">Event</h4>
+                <div class="event-meta">
+                    <strong>Club:</strong> <span th:text="${event.club.clubName}">club</span><br>
+                    <strong>Date:</strong> <span th:text="${event.eventDate}">date</span>
+                </div>
+                <div class="quick-links">
+                    <form th:action="@{/admin/reports/{eventId}/generate(eventId=${event.eventId})}" method="post">
+                        <button type="submit">Generate Report</button>
+                    </form>
+                    <a class="button-link" th:href="@{/admin/reports/{eventId}(eventId=${event.eventId})}">View Report</a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

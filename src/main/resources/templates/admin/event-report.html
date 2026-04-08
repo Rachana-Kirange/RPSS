@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Report | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/admin/reports}">All Reports</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="content-card" style="padding: 36px;">
+            <h2 th:text="'Report: ' + ${event.title}">Event Report</h2>
+            <p class="muted" th:text="${event.description}">Description</p>
+        </section>
+
+        <section th:if="${report == null}" class="content-card" style="padding: 36px;">
+            <div class="empty-state">No report has been generated for this event yet.</div>
+        </section>
+
+        <section th:if="${report != null}" class="grid-4">
+            <article class="grid-card tone-teal">
+                <h3>Total Participants</h3>
+                <p class="metric" th:text="${report.totalParticipants}">0</p>
+            </article>
+            <article class="grid-card tone-blue">
+                <h3>Total Attended</h3>
+                <p class="metric" th:text="${report.totalAttended}">0</p>
+            </article>
+            <article class="grid-card tone-green">
+                <h3>Feedback Count</h3>
+                <p class="metric" th:text="${report.feedbackCount}">0</p>
+            </article>
+            <article class="grid-card tone-amber">
+                <h3>Attendance %</h3>
+                <p class="metric" th:text="${report.attendancePercentage}">0</p>
+            </article>
+        </section>
+    </main>
+</div>
+</body>
+</html>
