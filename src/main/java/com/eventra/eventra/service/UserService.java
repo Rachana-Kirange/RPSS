@@ -33,21 +33,26 @@ public class UserService {
      * Register a new user in the system
      */
     public User registerUser(UserRegistrationDTO dto) {
-        log.info(String.format("Registering new user: %s", dto.getEmail()));
+        log.info(String.format("Registering new user: %s with role: %s", dto.getEmail(), dto.getRole()));
 
         if (userRepository.existsByEmail(dto.getEmail())) {
+            log.warning(String.format("Registration failed - email already exists: %s", dto.getEmail()));
             throw new IllegalArgumentException("Email already exists");
         }
 
         // Check if phone already exists
         if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
             if (userRepository.findByPhone(dto.getPhone()).isPresent()) {
+                log.warning(String.format("Registration failed - phone already exists: %s", dto.getPhone()));
                 throw new IllegalArgumentException("Phone number already registered");
             }
         }
 
         Role role = roleRepository.findByRoleName(dto.getRole())
-            .orElseThrow(() -> new RuntimeException("Role not found"));
+            .orElseThrow(() -> {
+                log.severe(String.format("Role not found: %s. Available roles must be initialized in database.", dto.getRole()));
+                return new IllegalArgumentException("Selected role is not available. Please contact administrator.");
+            });
 
         User user = new User();
         user.setName(dto.getName());
@@ -56,8 +61,18 @@ public class UserService {
         user.setRole(role);
         user.setIsActive(true);
 
+        // Encrypt password
         user.encryptPassword(dto.getPassword());
-        return userRepository.save(user);
+        
+        // Save user
+        User savedUser = userRepository.save(user);
+        
+        // Flush to ensure it's written to database immediately
+        userRepository.flush();
+        
+        log.info(String.format("User registered successfully: %s (ID: %d) with role: %s", 
+            savedUser.getEmail(), savedUser.getUserId(), role.getRoleName()));
+        return savedUser;
     }
 
     /**

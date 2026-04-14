@@ -32,25 +32,28 @@ public class EventService {
      * Create a new event (Club Head)
      */
     public Event createEvent(String title, String description, LocalDateTime eventDate,
-                            String venue, Integer maxCapacity, Long clubId, User clubHead) {
-        log.info(String.format("Creating new event: %s by club: %d", title, clubId));
+                        String venue, Integer maxCapacity, Long clubId, User user) {
 
-        Club club = clubRepository.findById(clubId)
-            .orElseThrow(() -> new RuntimeException("Club not found"));
-
-        Event event = new Event();
-        event.setTitle(title);
-        event.setDescription(description);
-        event.setEventDate(eventDate);
-        event.setVenue(venue);
-        event.setMaxCapacity(maxCapacity);
-        event.setClub(club);
-        event.setCreatedBy(clubHead);
-        event.setStatus(EventStatus.PENDING);
-        event.setRequiresPayment(false);
-
-        return eventRepository.save(event);
+    // 🔥 ROLE CHECK HERE (MAIN FIX)
+    if (!user.getRole().getRoleName().name().equals("CLUB_HEAD")) {
+        throw new RuntimeException("Only Club Heads can create events");
     }
+
+    Club club = clubRepository.findById(clubId)
+        .orElseThrow(() -> new RuntimeException("Club not found"));
+
+    Event event = new Event();
+    event.setTitle(title);
+    event.setDescription(description);
+    event.setEventDate(eventDate);
+    event.setVenue(venue);
+    event.setMaxCapacity(maxCapacity);
+    event.setClub(club);
+    event.setCreatedBy(user);
+    event.setStatus(EventStatus.PENDING);
+
+    return eventRepository.save(event);
+}
 
     /**
      * Approve event (Admin)

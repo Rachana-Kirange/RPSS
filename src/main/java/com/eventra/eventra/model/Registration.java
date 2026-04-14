@@ -44,6 +44,22 @@ public class Registration {
     @Column
     private LocalDateTime paymentDate;
 
+    // Participant details collected during registration
+    @Column(length = 100)
+    private String participantFullName;
+
+    @Column(length = 50)
+    private String section;
+
+    @Column(length = 20)
+    private String rollNumber;
+
+    @Column(length = 15)
+    private String mobileNumber;
+
+    @Column(length = 100)
+    private String participantEmail;
+
     @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Pass pass;
 
@@ -145,5 +161,46 @@ public class Registration {
         this.paymentStatus = PaymentStatus.COMPLETED;
         this.transactionId = transactionId;
         this.paymentDate = LocalDateTime.now();
+    }
+
+    // Participant details getters and setters
+    public String getParticipantFullName() {
+        return participantFullName;
+    }
+
+    public void setParticipantFullName(String participantFullName) {
+        this.participantFullName = participantFullName;
+    }
+
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
+
+    public String getRollNumber() {
+        return rollNumber;
+    }
+
+    public void setRollNumber(String rollNumber) {
+        this.rollNumber = rollNumber;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    public String getParticipantEmail() {
+        return participantEmail;
+    }
+
+    public void setParticipantEmail(String participantEmail) {
+        this.participantEmail = participantEmail;
     }
 }

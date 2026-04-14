@@ -39,12 +39,14 @@
                 </div>
                 <div class="grid-card">
                     <h3>Registration</h3>
-                    <div th:if="${isRegistered != null and isRegistered}" class="muted">
-                        You are already registered for this event.
+                    <div th:if="${isRegistered != null and isRegistered}" style="padding: 12px; background: #dcfce7; border-radius: 8px; color: #166534;">
+                        ✅ You are already registered for this event.
                     </div>
-                    <form th:if="${isRegistered == null or !isRegistered}" th:action="@{/registrations/register/{eventId}(eventId=${event.eventId})}" method="post">
-                        <button type="submit">Register Now</button>
-                    </form>
+                    <div th:if="${isRegistered == null or !isRegistered}">
+                        <a th:href="@{/registrations/register/{eventId}(eventId=${event.eventId})}" class="button-link" style="display: inline-block; padding: 12px 20px; background: #b45309; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                            📝 Register Now
+                        </a>
+                    </div>
                 </div>
             </aside>
         </section>

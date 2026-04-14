@@ -29,9 +29,6 @@
                 </div>
                 <div class="quick-links">
                     <a class="button-link" th:href="@{/registrations/{registrationId}/pass(registrationId=${registration.registrationId})}">View Pass</a>
-                    <form th:action="@{/registrations/{registrationId}/cancel(registrationId=${registration.registrationId})}" method="post">
-                        <button type="submit" style="background: var(--red);">Cancel</button>
-                    </form>
                 </div>
             </div>
         </div>

@@ -12,7 +12,9 @@
         <a class="brand" th:href="@{/}">Event<span>ra</span></a>
         <nav class="nav">
             <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/events/create}">Create Event</a>
+            <th:block th:if="${session.loggedInUser != null && session.loggedInUser.getRole().getRoleName().name() == 'CLUB_HEAD'}">
+                <a th:href="@{/events/create}">Create Event</a>
+            </th:block>
             <a th:href="@{/auth/logout}">Logout</a>
         </nav>
     </header>

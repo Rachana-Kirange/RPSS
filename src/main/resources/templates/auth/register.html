@@ -149,40 +149,47 @@
     <h1>Create Your Account</h1>
     <p class="intro">Register as a participant, club head, or admin account and sign in through the Eventra portal.</p>
 
-    <form th:action="@{/auth/register}" method="post">
+    <form th:action="@{/auth/register}" method="post" th:object="${userRegistrationDTO}">
         <div th:if="${error}" class="error-box" th:text="${error}"></div>
+        <div th:if="${success}" class="error-box" style="background: #dcfce7; color: #166534;" th:text="${success}"></div>
 
         <label for="name" class="full">
             Full Name
-            <input id="name" name="name" type="text" placeholder="Your full name" required>
+            <input id="name" th:field="*{name}" type="text" placeholder="Your full name" required>
+            <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
         </label>
 
         <label for="email">
             Email
-            <input id="email" name="email" type="email" placeholder="you@example.com" required>
+            <input id="email" th:field="*{email}" type="email" placeholder="you@example.com" required>
+            <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
         </label>
 
         <label for="phone">
             Phone
-            <input id="phone" name="phone" type="text" placeholder="10 digit number" required>
+            <input id="phone" th:field="*{phone}" type="text" placeholder="10 digit number" required>
+            <span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
         </label>
 
         <label for="role">
             Role
-            <select id="role" name="role" required>
+            <select id="role" th:field="*{role}" required>
                 <option value="">Select role</option>
                 <option th:each="role : ${roles}" th:value="${role.name()}" th:text="${role.description}"></option>
             </select>
+            <span class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
         </label>
 
         <label for="password">
             Password
-            <input id="password" name="password" type="password" placeholder="Create password" required>
+            <input id="password" th:field="*{password}" type="password" placeholder="Create password" required>
+            <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
         </label>
 
         <label for="confirmPassword" class="full">
             Confirm Password
-            <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Repeat password" required>
+            <input id="confirmPassword" th:field="*{confirmPassword}" type="password" placeholder="Repeat password" required>
+            <span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
         </label>
 
         <button type="submit">Register</button>

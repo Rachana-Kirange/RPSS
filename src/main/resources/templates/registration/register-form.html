@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration | Eventra</title>
+    <style>
+        :root {
+            --bg: linear-gradient(140deg, #f7f4ea 0%, #e3eef7 100%);
+            --card: rgba(255, 255, 255, 0.94);
+            --text: #1f2933;
+            --muted: #5f6c7b;
+            --primary: #b45309;
+            --primary-dark: #92400e;
+            --border: rgba(31, 41, 51, 0.12);
+            --danger: #b91c1c;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+        }
+
+        .wrap {
+            width: min(800px, 100%);
+            margin: 0 auto;
+        }
+
+        .event-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 36px;
+            margin-bottom: 24px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+        }
+
+        .form-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 36px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            line-height: 0.95;
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .intro {
+            margin: 0 0 28px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .event-details {
+            background: rgba(180, 83, 9, 0.06);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .event-details p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .event-details strong {
+            color: var(--primary);
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.95);
+            font: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid rgba(180, 83, 9, 0.16);
+            border-color: var(--primary);
+        }
+
+        .error-box {
+            grid-column: 1 / -1;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.95rem;
+        }
+
+        .success-box {
+            grid-column: 1 / -1;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.95rem;
+        }
+
+        .field-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .form-buttons {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 16px;
+            padding: 14px 18px;
+            background: var(--primary);
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-cancel {
+            background: #6b7280;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        @media (max-width: 700px) {
+            .event-card,
+            .form-card {
+                padding: 24px;
+            }
+
+            form {
+                grid-template-columns: 1fr;
+            }
+
+            .full,
+            .form-buttons {
+                grid-column: auto;
+            }
+
+            .form-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <!-- Event Details -->
+    <div class="event-card" th:if="${event}">
+        <h1 th:text="${event.title}"></h1>
+        <div class="event-details">
+            <p><strong>📅 Date & Time:</strong> <span th:text="${#temporals.format(event.eventDate, 'dd-MM-yyyy HH:mm')}"></span></p>
+            <p><strong>📍 Venue:</strong> <span th:text="${event.venue}"></span></p>
+            <p><strong>👥 Seats Available:</strong> <span th:text="${event.availableSeats}"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="form-card">
+        <h2>Complete Your Registration</h2>
+        <p class="intro">Please fill in your details to complete the registration for this event.</p>
+
+        <form th:action="@{/registrations/register/{eventId}(eventId=${event.eventId})}" method="post" th:object="${eventRegistrationDTO}">
+            <div th:if="${error}" class="error-box" th:text="${error}"></div>
+            <div th:if="${success}" class="success-box" th:text="${success}"></div>
+
+            <label for="participantFullName" class="full">
+                Full Name <span style="color: var(--danger);">*</span>
+                <input id="participantFullName" th:field="*{participantFullName}" type="text" placeholder="Your full name" required>
+                <span class="field-error" th:if="${#fields.hasErrors('participantFullName')}" th:errors="*{participantFullName}"></span>
+            </label>
+
+            <label for="section">
+                Section/Class <span style="color: var(--danger);">*</span>
+                <input id="section" th:field="*{section}" type="text" placeholder="e.g. A1, B2" required>
+                <span class="field-error" th:if="${#fields.hasErrors('section')}" th:errors="*{section}"></span>
+            </label>
+
+            <label for="rollNumber">
+                Roll Number <span style="color: var(--danger);">*</span>
+                <input id="rollNumber" th:field="*{rollNumber}" type="text" placeholder="Your roll number" required>
+                <span class="field-error" th:if="${#fields.hasErrors('rollNumber')}" th:errors="*{rollNumber}"></span>
+            </label>
+
+            <label for="mobileNumber">
+                Mobile Number <span style="color: var(--danger);">*</span>
+                <input id="mobileNumber" th:field="*{mobileNumber}" type="text" placeholder="10 digit number" pattern="[0-9]{10}" required>
+                <span class="field-error" th:if="${#fields.hasErrors('mobileNumber')}" th:errors="*{mobileNumber}"></span>
+            </label>
+
+            <label for="participantEmail" class="full">
+                Email Address <span style="color: var(--danger);">*</span>
+                <input id="participantEmail" th:field="*{participantEmail}" type="email" placeholder="you@example.com" required>
+                <span class="field-error" th:if="${#fields.hasErrors('participantEmail')}" th:errors="*{participantEmail}"></span>
+            </label>
+
+            <div class="form-buttons">
+                <button type="submit">✅ Complete Registration</button>
+                <a th:href="@{/events/{eventId}(eventId=${event.eventId})}" class="btn-cancel">← Back to Event</a>
+            </div>
+        </form>
+
+        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 0.9rem; color: var(--muted);">
+            <p>ℹ️ <strong>Important:</strong> Once you complete the registration, you cannot cancel it. Please review all details before submitting.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

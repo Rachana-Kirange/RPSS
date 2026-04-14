@@ -94,7 +94,11 @@ public class AuthController {
     public String handleRegistration(@Valid @ModelAttribute UserRegistrationDTO registrationDTO,
                                     BindingResult result, Model model) {
         try {
+            log.info(String.format("Registration attempt: email=%s, name=%s, role=%s", 
+                registrationDTO.getEmail(), registrationDTO.getName(), registrationDTO.getRole()));
+            
             if (result.hasErrors()) {
+                log.warning("Validation errors in registration: " + result.getAllErrors());
                 model.addAttribute("roles", RoleEnum.values());
                 return "auth/register";
             }
@@ -106,16 +110,20 @@ public class AuthController {
                 return "auth/register";
             }
 
-            userService.registerUser(registrationDTO);
-            log.info(String.format("New user registered: %s", registrationDTO.getEmail()));
+            User savedUser = userService.registerUser(registrationDTO);
+            log.info(String.format("User registered successfully: %s (ID: %d) with role: %s", 
+                savedUser.getEmail(), savedUser.getUserId(), savedUser.getRole().getRoleName()));
             model.addAttribute("success", "Registration successful! Please login.");
             return "redirect:/auth/login";
         } catch (IllegalArgumentException e) {
+            log.warning("Registration failed: " + e.getMessage());
             // Handle both email and phone duplicate errors
             if (e.getMessage().contains("Email already exists")) {
                 result.rejectValue("email", "email.exists", e.getMessage());
             } else if (e.getMessage().contains("Phone number already registered")) {
                 result.rejectValue("phone", "phone.exists", e.getMessage());
+            } else if (e.getMessage().contains("role is not available")) {
+                result.rejectValue("role", "error", e.getMessage());
             } else {
                 result.rejectValue("email", "error", e.getMessage());
             }

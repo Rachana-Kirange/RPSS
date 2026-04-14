@@ -3,6 +3,7 @@ package com.eventra.eventra.service;
 import com.eventra.eventra.model.Event;
 import com.eventra.eventra.model.Registration;
 import com.eventra.eventra.model.User;
+import com.eventra.eventra.dto.EventRegistrationDTO;
 import com.eventra.eventra.enums.RegistrationStatus;
 import com.eventra.eventra.enums.PaymentStatus;
 import com.eventra.eventra.repository.RegistrationRepository;
@@ -60,6 +61,51 @@ public class RegistrationService {
         }
 
         return registrationRepository.save(registration);
+    }
+
+    /**
+     * Register participant with detailed information
+     */
+    public Registration registerForEventWithDetails(Long eventId, User participant, EventRegistrationDTO dto) {
+        log.info(String.format("Registering user %s for event %d with details", participant.getEmail(), eventId));
+
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Check if user already registered
+        if (registrationRepository.existsByEventAndParticipant(event, participant)) {
+            throw new IllegalArgumentException("User already registered for this event");
+        }
+
+        // Check if seats available
+        if (!event.isSpaceAvailable()) {
+            throw new IllegalArgumentException("Event is full, no seats available");
+        }
+
+        Registration registration = new Registration();
+        registration.setEvent(event);
+        registration.setParticipant(participant);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+
+        // Set participant details
+        registration.setParticipantFullName(dto.getParticipantFullName());
+        registration.setSection(dto.getSection());
+        registration.setRollNumber(dto.getRollNumber());
+        registration.setMobileNumber(dto.getMobileNumber());
+        registration.setParticipantEmail(dto.getParticipantEmail());
+
+        // Automatically set payment status
+        if (!event.getRequiresPayment()) {
+            registration.setPaymentStatus(PaymentStatus.NOT_REQUIRED);
+        } else {
+            registration.setPaymentStatus(PaymentStatus.PENDING);
+        }
+
+        Registration savedReg = registrationRepository.save(registration);
+        registrationRepository.flush();
+        
+        log.info(String.format("User registered successfully for event %d with ID %d", eventId, savedReg.getRegistrationId()));
+        return savedReg;
     }
 
     /**
@@ -151,5 +197,12 @@ public class RegistrationService {
         return registrations.stream()
             .filter(reg -> reg.getParticipant().getUserId().equals(userId))
             .findFirst();
+    }
+
+    /**
+     * Get registration by user and event
+     */
+    public Optional<Registration> getByUserAndEvent(Long userId, Long eventId) {
+        return getUserEventRegistration(eventId, userId);
     }
 }
