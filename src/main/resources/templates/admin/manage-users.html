@@ -5,6 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users | Eventra</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .users-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .pending-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .approved-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .user-details {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-assign {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-assign:hover {
+            background: #5568d3;
+        }
+
+        .btn-pending {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
 <div class="page-shell">
@@ -12,21 +97,56 @@
         <a class="brand" th:href="@{/}">Event<span>ra</span></a>
         <nav class="nav">
             <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/admin/users/add}">Add User</a>
+            <a th:href="@{/admin/users/pending}">Pending Users</a>
+            <a th:href="@{/admin/clubs}">Manage Clubs</a>
             <a th:href="@{/auth/logout}">Logout</a>
         </nav>
     </header>
 
-    <main class="content-card" style="padding: 36px; margin-top: 16px;">
-        <h2>Manage Users</h2>
-        <div th:if="${#lists.isEmpty(users)}" class="empty-state">No users available.</div>
-        <div th:unless="${#lists.isEmpty(users)}" class="event-list">
-            <div class="event-item" th:each="user : ${users}">
-                <h4 th:text="${user.name}">User</h4>
-                <div class="event-meta">
-                    <strong>Email:</strong> <span th:text="${user.email}">email</span><br>
-                    <strong>Phone:</strong> <span th:text="${user.phone}">phone</span><br>
-                    <strong>Role:</strong> <span th:text="${user.roleDisplayName}">role</span>
+    <main class="users-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Manage All Users</h2>
+            <div style="display: flex; gap: 10px;">
+                <a th:href="@{/admin/users/add}" style="background: #667eea; color: white; padding: 10px 16px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;">+ Add User</a>
+                <a th:href="@{/admin/clubs/add}" style="background: #28a745; color: white; padding: 10px 16px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;">+ Add Club</a>
+            </div>
+        </div>
+        
+        <div style="background: #e7f3ff; padding: 12px; border-radius: 5px; margin-bottom: 20px; color: #0066cc;">
+            📋 <strong>Pending Users:</strong> <span th:text="${pendingCount}">0</span>
+            <a th:href="@{/admin/users/pending}" style="margin-left: 10px; color: #0066cc; text-decoration: underline;">View Pending →</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+            <p>No users available.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(users)}">
+            <div th:each="user : ${users}" class="user-card">
+                <div class="user-info">
+                    <h4 th:text="${user.name}">User Name</h4>
+                    <div class="user-details">
+                        📧 <span th:text="${user.email}">email@example.com</span>
+                    </div>
+                    <div class="user-details">
+                        📱 <span th:text="${user.phone}">Phone</span>
+                    </div>
+                    <div class="user-details">
+                        <strong>Role:</strong> <span th:text="${user.role.roleName}">STUDENT</span>
+                    </div>
+                    <div class="user-details" style="margin-top: 10px;">
+                        <!-- Show approval status -->
+                        <span th:if="${user.approvalStatus.name() == 'APPROVED'}" class="approved-badge">✓ Approved</span>
+                        <span th:if="${user.approvalStatus.name() == 'PENDING'}" class="pending-badge">⏳ Pending</span>
+                        <span th:if="${user.approvalStatus.name() == 'REJECTED'}" style="color: red; font-weight: bold;">✗ Rejected</span>
+                    </div>
+                </div>
+
+                <div class="user-actions">
+                    <!-- Show assign club button only for approved CLUB_HEAD users -->
+                    <a th:if="${user.role.roleName == 'CLUB_HEAD' && user.approvalStatus.name() == 'APPROVED'}" 
+                       th:href="@{/admin/users/{id}/assign-club-form(id=${user.userId})}"
+                       class="btn btn-assign">🔗 Assign Club</a>
                 </div>
             </div>
         </div>

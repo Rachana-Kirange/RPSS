@@ -128,7 +128,11 @@
                     dto.getVenue(),
                     dto.getMaxCapacity(),
                     club.get().getClubId(),
-                    user
+                    user,
+                    dto.getRequiresPayment(),
+                    dto.getPaymentAmount(),
+                    dto.getRequiresQR(),
+                    dto.getActivityProposal()
                 );
 
                 log.info(String.format("Event created: %d by %s", event.getEventId(), user.getEmail()));
@@ -188,5 +192,116 @@
             eventService.rejectEvent(eventId, admin, reason);
             log.warning(String.format("Event rejected: %d - Reason: %s", eventId, reason));
             return "redirect:/events/pending";
+        }
+
+        /**
+         * View event participants (Club Head)
+         */
+        @GetMapping("/{eventId}/participants")
+        public String viewParticipants(@PathVariable Long eventId, HttpSession session, Model model) {
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            Optional<Event> event = eventService.getEventById(eventId);
+            if (event.isEmpty()) {
+                model.addAttribute("error", "Event not found");
+                return "error/not-found";
+            }
+
+            // Check if user is the event creator or admin
+            if (!event.get().getCreatedBy().getUserId().equals(user.getUserId()) && 
+                !user.getRole().getRoleName().name().equals("ADMIN")) {
+                return "redirect:/dashboard";
+            }
+
+            var registrations = registrationService.getEventRegistrations(eventId);
+            model.addAttribute("event", event.get());
+            model.addAttribute("registrations", registrations);
+            model.addAttribute("participantCount", registrations.size());
+            return "event/manage-participants";
+        }
+
+        /**
+         * Media upload page (Club Head)
+         */
+        @GetMapping("/{eventId}/media")
+        public String viewMediaUpload(@PathVariable Long eventId, HttpSession session, Model model) {
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            Optional<Event> event = eventService.getEventById(eventId);
+            if (event.isEmpty()) {
+                model.addAttribute("error", "Event not found");
+                return "error/not-found";
+            }
+
+            // Check if user is the event creator
+            if (!event.get().getCreatedBy().getUserId().equals(user.getUserId())) {
+                return "redirect:/dashboard";
+            }
+
+            model.addAttribute("event", event.get());
+            model.addAttribute("media", event.get().getMedia());
+            return "event/upload-media";
+        }
+
+        /**
+         * Event report page (Club Head)
+         */
+        @GetMapping("/{eventId}/report")
+        public String viewEventReport(@PathVariable Long eventId, HttpSession session, Model model) {
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            Optional<Event> event = eventService.getEventById(eventId);
+            if (event.isEmpty()) {
+                model.addAttribute("error", "Event not found");
+                return "error/not-found";
+            }
+
+            // Check if user is the event creator
+            if (!event.get().getCreatedBy().getUserId().equals(user.getUserId())) {
+                return "redirect:/dashboard";
+            }
+
+            model.addAttribute("event", event.get());
+            model.addAttribute("eventReport", event.get().getEventReport());
+            model.addAttribute("registrationCount", event.get().getRegistrationCount());
+            model.addAttribute("feedbackCount", event.get().getFeedbacks().size());
+            return "event/view-report";
+        }
+
+        /**
+         * Save event report (Club Head)
+         */
+        @PostMapping("/{eventId}/report")
+        public String saveEventReport(@PathVariable Long eventId, 
+                                     @RequestParam String report,
+                                     HttpSession session, Model model) {
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            Optional<Event> event = eventService.getEventById(eventId);
+            if (event.isEmpty()) {
+                model.addAttribute("error", "Event not found");
+                return "error/not-found";
+            }
+
+            // Check if user is the event creator
+            if (!event.get().getCreatedBy().getUserId().equals(user.getUserId())) {
+                return "redirect:/dashboard";
+            }
+
+            eventService.saveEventReport(eventId, report);
+            log.info(String.format("Event report saved for event: %d", eventId));
+            return "redirect:/events/" + eventId + "/report";
         }
     }

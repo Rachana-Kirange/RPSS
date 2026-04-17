@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Media | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/events}">Events</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 18px;">
+        <div class="section-head" style="margin-bottom: 24px;">
+            <div>
+                <h2>Upload Event Media</h2>
+                <p th:text="${event.title}" style="color: var(--shadow); font-size: 0.95rem;">Event title</p>
+            </div>
+            <div>
+                <a th:href="@{/events/{id}(id=${event.eventId})}" class="button-link">Back to Event</a>
+            </div>
+        </div>
+
+        <div style="background-color: rgba(0,0,0,0.02); padding: 20px; border-radius: 14px; border-left: 4px solid var(--primary); margin-bottom: 24px;">
+            <h4 style="color: var(--primary);">📸 Share Event Memories</h4>
+            <p style="color: var(--shadow); font-size: 0.9rem;">Upload photos and videos from your event to keep memories and document the event for your club's records.</p>
+        </div>
+
+        <form id="mediaForm" enctype="multipart/form-data" style="display: grid; gap: 20px; margin-bottom: 32px;">
+            <div style="border: 2px dashed var(--primary); border-radius: 14px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.3s;" id="dropzone">
+                <input type="file" id="fileInput" name="files" multiple accept="image/*,video/*" style="display: none;">
+                <div id="dropIcon" style="font-size: 3rem; margin-bottom: 12px;">📁</div>
+                <h4>Drag & drop your files here</h4>
+                <p style="color: var(--shadow); font-size: 0.9rem; margin-bottom: 12px;">or click to select files</p>
+                <p style="color: var(--shadow); font-size: 0.8rem;">Supported: JPG, PNG, MP4, MOV (Max 50MB per file)</p>
+            </div>
+
+            <label>
+                Description (Optional)
+                <textarea id="description" name="description" rows="4" placeholder="Share details about the photos/videos..." style="padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <div id="fileList" style="display: none; background-color: rgba(0,0,0,0.02); padding: 16px; border-radius: 14px;">
+                <h4>Files to upload:</h4>
+                <ul id="uploadList" style="list-style: none; padding: 0; margin: 12px 0 0 0;"></ul>
+                <p id="totalSize" style="color: var(--shadow); font-size: 0.85rem; margin-top: 8px;"></p>
+            </div>
+
+            <button type="submit" class="button-link primary" style="width: 100%;">Upload Media</button>
+        </form>
+
+        <div th:if="!${#lists.isEmpty(media)}" class="list-card">
+            <h3>Previously Uploaded Media</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div th:each="item : ${media}" style="border: 1px solid var(--line); border-radius: 8px; overflow: hidden; text-align: center;">
+                    <div style="width: 100%; height: 120px; background-color: rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;">
+                        <div th:if="${item.fileType.name() == 'IMAGE'}" style="font-size: 2rem;">🖼️</div>
+                        <div th:unless="${item.fileType.name() == 'IMAGE'}" style="font-size: 2rem;">🎬</div>
+                    </div>
+                    <div style="padding: 8px;">
+                        <p style="font-size: 0.8rem; color: var(--shadow); margin: 4px 0;" th:text="${item.fileName}">filename</p>
+                        <p style="font-size: 0.75rem; color: var(--shadow); margin: 0;" th:text="${#temporals.format(item.uploadDate, 'MMM dd')}">date</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(media)}" class="empty-state" style="margin-top: 32px;">
+            <p>No media uploaded yet. Be the first to share event memories!</p>
+        </div>
+    </main>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadList = document.getElementById('uploadList');
+        const totalSize = document.getElementById('totalSize');
+        const mediaForm = document.getElementById('mediaForm');
+
+        // Dropzone click to select
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--primary-dark)';
+            dropzone.style.backgroundColor = 'rgba(0,0,0,0.05)';
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.style.borderColor = 'var(--primary)';
+            dropzone.style.backgroundColor = 'transparent';
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--primary)';
+            dropzone.style.backgroundColor = 'transparent';
+            fileInput.files = e.dataTransfer.files;
+            updateFileList();
+        });
+
+        fileInput.addEventListener('change', updateFileList);
+
+        function updateFileList() {
+            const files = fileInput.files;
+            if (files.length === 0) {
+                fileList.style.display = 'none';
+                uploadList.innerHTML = '';
+                return;
+            }
+
+            uploadList.innerHTML = '';
+            let totalBytes = 0;
+
+            for (let file of files) {
+                const li = document.createElement('li');
+                li.style.padding = '8px 0';
+                li.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
+                li.innerHTML = `<span>${file.name}</span> <span style="color: var(--shadow); font-size: 0.85rem;">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>`;
+                uploadList.appendChild(li);
+                totalBytes += file.size;
+            }
+
+            totalSize.textContent = `Total: ${(totalBytes / 1024 / 1024).toFixed(2)} MB`;
+            fileList.style.display = 'block';
+        }
+
+        mediaForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // For now, just show a message. In production, implement actual file upload
+            alert('File upload functionality would be implemented here. Files: ' + fileInput.files.length);
+            // TODO: Implement actual file upload via FormData and fetch/XMLHttpRequest
+        });
+    </script>
+</div>
+</body>
+</html>

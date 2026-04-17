@@ -18,7 +18,8 @@
 
     <main class="content-card" style="padding: 36px; margin-top: 16px;">
         <h2>Add New User</h2>
-        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
+        <a th:href="@{/admin/users}" style="display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none;">← Back to Users</a>
+        <div th:if="${error}" class="error-box" style="margin-bottom: 16px; background: #f8d7da; color: #721c24; padding: 12px; border-radius: 5px;" th:text="${error}"></div>
         <form th:action="@{/admin/users/add}" th:object="${userRegistrationDTO}" method="post" style="display:grid; gap:16px;">
             <div class="grid-2">
                 <label>
@@ -37,9 +38,11 @@
                 </label>
                 <label>
                     Role
-                    <select th:field="*{role}" required>
-                        <option value="">Select role</option>
-                        <option th:each="role : ${roles}" th:value="${role}" th:text="${role}"></option>
+                    <select name="role" required>
+                        <option value="">-- Select role --</option>
+                        <option value="PARTICIPANT">Participant (Student)</option>
+                        <option value="CLUB_HEAD">Club Head</option>
+                        <option value="ADMIN">Admin</option>
                     </select>
                 </label>
             </div>
@@ -53,7 +56,7 @@
                     <input type="password" th:field="*{confirmPassword}" required>
                 </label>
             </div>
-            <button type="submit">Create User</button>
+            <button type="submit" style="background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Create User</button>
         </form>
     </main>
 </div>

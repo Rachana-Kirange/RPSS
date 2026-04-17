@@ -1,8 +1,10 @@
 package com.eventra.eventra.config;
 
 import com.eventra.eventra.model.Role;
+import com.eventra.eventra.model.Club;
 import com.eventra.eventra.enums.RoleEnum;
 import com.eventra.eventra.repository.RoleRepository;
+import com.eventra.eventra.repository.ClubRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.logging.Logger;
 
 /**
- * Initialize default roles in the database on application startup
+ * Initialize default roles and clubs in the database on application startup
  */
 @Configuration
 public class DataInitializationConfig implements WebMvcConfigurer {
@@ -43,7 +45,7 @@ public class DataInitializationConfig implements WebMvcConfigurer {
                 Role clubHead = new Role();
                 clubHead.setRoleName(RoleEnum.CLUB_HEAD);
                 clubHead.setDescription("Club Head - Can create and manage events");
-                clubHead.setPermissions("{\"create_event\": true, \"manage_participants\": true, \"upload_media\": true, \"submit_report\": true}");
+                clubHead.setPermissions("{\"create_event\": true, \"manage_students\": true, \"upload_media\": true, \"submit_report\": true}");
                 roleRepository.save(clubHead);
                 log.info("Created CLUB_HEAD role");
             }
@@ -59,6 +61,47 @@ public class DataInitializationConfig implements WebMvcConfigurer {
             }
 
             log.info("Role initialization completed");
+        };
+    }
+
+    @Bean
+    public ApplicationRunner initializeClubs(ClubRepository clubRepository) {
+        return args -> {
+            log.info("Checking and initializing predefined clubs...");
+
+            String[] predefinedClubNames = {
+                "Codeverse Technical Club",
+                "Kalakruti Cultural Club",
+                "Strikers Sports Club",
+                "Innovation Club",
+                "Digisphere Digital Marketing Club",
+                "Samvedna Social Club",
+                "Photography Club"
+            };
+
+            String[] clubDescriptions = {
+                "Technical club focused on programming, web development, and software engineering",
+                "Cultural club dedicated to arts, music, dance, and cultural activities",
+                "Sports club for athletic activities and sports events",
+                "Club for innovation projects and entrepreneurship",
+                "Digital marketing club focused on social media, content marketing, and digital strategies",
+                "Social club focused on community service and social awareness",
+                "Photography club for photography enthusiasts and visual artists"
+            };
+
+            for (int i = 0; i < predefinedClubNames.length; i++) {
+                String clubName = predefinedClubNames[i];
+                if (clubRepository.findByClubName(clubName).isEmpty()) {
+                    Club club = new Club();
+                    club.setClubName(clubName);
+                    club.setDescription(clubDescriptions[i]);
+                    club.setIsActive(true);
+                    clubRepository.save(club);
+                    log.info(String.format("Created club: %s", clubName));
+                }
+            }
+
+            log.info("Club initialization completed");
         };
     }
 }

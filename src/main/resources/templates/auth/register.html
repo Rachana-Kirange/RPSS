@@ -147,7 +147,7 @@
 <body>
 <main class="wrap">
     <h1>Create Your Account</h1>
-    <p class="intro">Register as a participant, club head, or admin account and sign in through the Eventra portal.</p>
+    <p class="intro">Join Eventra! Register as a <strong>Student</strong> to discover campus events and register for activities, or as a <strong>Club Head</strong> to create and manage events (admin approval required).</p>
 
     <form th:action="@{/auth/register}" method="post" th:object="${userRegistrationDTO}">
         <div th:if="${error}" class="error-box" th:text="${error}"></div>
@@ -172,10 +172,11 @@
         </label>
 
         <label for="role">
-            Role
+            Register As
             <select id="role" th:field="*{role}" required>
-                <option value="">Select role</option>
-                <option th:each="role : ${roles}" th:value="${role.name()}" th:text="${role.description}"></option>
+                <option value="">-- Select Role --</option>
+                <option value="PARTICIPANT">Student / Participant</option>
+                <option value="CLUB_HEAD">Club Head</option>
             </select>
             <span class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></span>
         </label>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Analytics Dashboard | RPSS Committee</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        .admin-page {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .page-header {
+            background: linear-gradient(90deg, #0f3460 0%, #1a1a2e 100%);
+            border-bottom: 3px solid #e94560;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .content-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px 30px 30px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .analytics-card {
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .analytics-card h3 {
+            color: #16c784;
+            margin: 0 0 20px 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analytics-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #e94560;
+            margin: 10px 0;
+        }
+
+        .analytics-label {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 40px;
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .top-events {
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 40px;
+        }
+
+        .event-row {
+            background: rgba(26, 26, 46, 0.8);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #16c784;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-name {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .event-stat {
+            background: #e94560;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: #e94560;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #d63347;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 0 15px 15px 15px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="admin-page">
+
+<div class="page-header">
+    <h1>📊 Analytics Dashboard</h1>
+    <p style="color: #16c784; margin: 10px 0 0 0;">System-wide insights and metrics</p>
+</div>
+
+<div class="content-wrapper">
+    <!-- Key Metrics -->
+    <div class="analytics-grid">
+        <div class="analytics-card">
+            <h3>Total Events</h3>
+            <div class="analytics-number" th:text="${analytics.totalEvents}">0</div>
+            <div class="analytics-label">All Events Created</div>
+        </div>
+        <div class="analytics-card">
+            <h3>Total Registrations</h3>
+            <div class="analytics-number" th:text="${analytics.totalRegistrations}">0</div>
+            <div class="analytics-label">Student Registrations</div>
+        </div>
+        <div class="analytics-card">
+            <h3>Total Users</h3>
+            <div class="analytics-number" th:text="${analytics.totalUsers}">0</div>
+            <div class="analytics-label">Active System Users</div>
+        </div>
+        <div class="analytics-card">
+            <h3>Students</h3>
+            <div class="analytics-number" th:text="${analytics.totalStudents}">0</div>
+            <div class="analytics-label">Registered Students</div>
+        </div>
+        <div class="analytics-card">
+            <h3>Club Heads</h3>
+            <div class="analytics-number" th:text="${analytics.totalClubHeads}">0</div>
+            <div class="analytics-label">Active Club Heads</div>
+        </div>
+        <div class="analytics-card">
+            <h3>Total Revenue</h3>
+            <div class="analytics-number">₹<span th:text="${#numbers.formatDecimal(analytics.totalRevenue, 1, 2)}">0.00</span></div>
+            <div class="analytics-label">Event Registration Fees</div>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div th:if="${analytics.topEvents != null && !analytics.topEvents.isEmpty()}">
+        <div class="top-events">
+            <h3>🏆 Top 5 Events by Registration</h3>
+            <div th:each="event : ${analytics.topEvents}" class="event-row">
+                <span class="event-name" th:text="${event.title}">Event Name</span>
+                <span class="event-stat">
+                    <span th:text="${event.registrations}">0</span> registrations
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <a th:href="@{/dashboard}" class="back-btn">← Back to Dashboard</a>
+</div>
+
+<script>
+    // You can add Chart.js charts here for more detailed analytics
+    // Example: registration trends, event status breakdown, etc.
+</script>
+
+</body>
+</html>

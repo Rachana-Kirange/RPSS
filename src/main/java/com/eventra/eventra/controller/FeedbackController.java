@@ -74,7 +74,7 @@ public class FeedbackController {
 
         try {
             feedbackService.submitFeedback(eventId, user, dto.getRating(), dto.getComment());
-            log.info(String.format("Feedback submitted for event: %d by user: %s", eventId, user.getEmail()));
+            log.info("Feedback submitted for event: " + eventId + " by user: " + user.getEmail());
             return "redirect:/events/" + eventId;
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -120,7 +120,7 @@ public class FeedbackController {
             return "error/not-found";
         }
 
-        if (!feedback.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!feedback.get().getStudent().getUserId().equals(user.getUserId())) {
             return "error/unauthorized";
         }
 
@@ -151,7 +151,7 @@ public class FeedbackController {
             return "error/not-found";
         }
 
-        if (!feedback.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!feedback.get().getStudent().getUserId().equals(user.getUserId())) {
             return "error/unauthorized";
         }
 
@@ -161,7 +161,7 @@ public class FeedbackController {
         }
 
         feedbackService.updateFeedback(feedbackId, dto.getRating(), dto.getComment());
-        log.info(String.format("Feedback updated: %d", feedbackId));
+        log.info("Feedback updated: " + feedbackId);
         return "redirect:/events/" + feedback.get().getEvent().getEventId();
     }
 
@@ -181,13 +181,13 @@ public class FeedbackController {
             return "error/not-found";
         }
 
-        if (!feedback.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!feedback.get().getStudent().getUserId().equals(user.getUserId())) {
             return "error/unauthorized";
         }
 
         Long eventId = feedback.get().getEvent().getEventId();
         feedbackService.deleteFeedback(feedbackId);
-        log.info(String.format("Feedback deleted: %d", feedbackId));
+        log.info("Feedback deleted: " + feedbackId);
 
         return "redirect:/feedback/event/" + eventId + "/all";
     }

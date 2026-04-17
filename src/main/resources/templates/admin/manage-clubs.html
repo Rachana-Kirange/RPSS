@@ -3,33 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Clubs | Eventra</title>
+    <title>🏢 Manage Clubs | Admin Panel</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
-</head>
-<body>
-<div class="page-shell">
-    <header class="topbar">
-        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
-        <nav class="nav">
-            <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/admin/clubs/add}">Add Club</a>
-        </nav>
-    </header>
+    <style>
+        .admin-page {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
 
-    <main class="content-card" style="padding: 36px; margin-top: 16px;">
-        <h2>Manage Clubs</h2>
-        <div th:if="${#lists.isEmpty(clubs)}" class="empty-state">No clubs found.</div>
-        <div th:unless="${#lists.isEmpty(clubs)}" class="event-list">
-            <div class="event-item" th:each="club : ${clubs}">
-                <h4 th:text="${club.clubName}">Club</h4>
-                <div class="event-meta">
-                    <strong>Head:</strong> <span th:text="${club.clubHeadName}">head</span><br>
-                    <strong>Status:</strong> <span th:text="${club.isActive ? 'Active' : 'Inactive'}">status</span><br>
-                    <span th:text="${club.description}">description</span>
-                </div>
+        .page-header {
+            background: linear-gradient(90deg, #0f3460 0%, #1a1a2e 100%);
+            border-bottom: 3px solid #e94560;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .add-btn {
+            background: #16c784;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background: #12a570;
+            transform: translateY(-2px);
+        }
+
+        .content-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 30px 30px 30px;
+        }
+
+        .clubs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .club-card {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.1) 0%, rgba(22, 199, 132, 0.1) 100%);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .club-card:hover {
+            border-color: #16c784;
+            box-shadow: 0 8px 24px rgba(233, 69, 96, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .club-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #16c784;
+            margin: 0 0 15px 0;
+        }
+
+        .club-info {
+            color: #ddd;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .club-info strong {
+            color: #16c784;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-active {
+            background: rgba(22, 199, 132, 0.3);
+            color: #16c784;
+            border: 1px solid #16c784;
+        }
+
+        .status-inactive {
+            background: rgba(233, 69, 96, 0.3);
+            color: #e94560;
+            border: 1px solid #e94560;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h2 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .clubs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-page">
+
+<div class="page-header">
+    <h1>🏢 Manage Clubs</h1>
+    <a th:href="@{/admin/clubs/add}" class="add-btn">+ Add New Club</a>
+</div>
+
+<div class="content-wrapper">
+    <div th:if="${#lists.isEmpty(clubs)}" class="empty-state">
+        <h2>No Clubs Found</h2>
+        <p>Start by adding your first club. Click the "Add New Club" button to begin.</p>
+    </div>
+    
+    <div th:unless="${#lists.isEmpty(clubs)}" class="clubs-grid">
+        <div th:each="club : ${clubs}" class="club-card">
+            <h3 class="club-name" th:text="${club.clubName}">Club Name</h3>
+            
+            <div class="club-info">
+                <strong>📋 Head:</strong><br>
+                <span th:text="${club.clubHeadName}">Club Head Name</span>
+            </div>
+            
+            <div class="club-info">
+                <strong>📝 Description:</strong><br>
+                <span th:text="${club.description}">Club Description</span>
+            </div>
+            
+            <div class="club-info">
+                <strong>📊 Events:</strong> 
+                <span th:text="${club.totalEvents != null ? club.totalEvents : 0}">0</span>
+            </div>
+            
+            <div>
+                <span th:if="${club.isActive}" class="status-badge status-active">✓ Active</span>
+                <span th:unless="${club.isActive}" class="status-badge status-inactive">✗ Inactive</span>
             </div>
         </div>
-    </main>
+    </div>
 </div>
+
 </body>
 </html>
+

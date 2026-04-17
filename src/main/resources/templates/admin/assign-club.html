@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Assign Club | Admin Panel</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .admin-page {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-title {
+            color: #16c784;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 24px;
+        }
+
+        .form-subtitle {
+            color: #999;
+            margin-bottom: 30px;
+        }
+
+        .user-info-card {
+            background: rgba(233, 69, 96, 0.1);
+            border: 2px solid #e94560;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .user-info-label {
+            color: #16c784;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .user-info-value {
+            color: #e0e0e0;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #e0e0e0;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e94560;
+            border-radius: 5px;
+            background: rgba(26, 26, 46, 0.8);
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #16c784;
+            box-shadow: 0 0 10px rgba(22, 199, 132, 0.3);
+        }
+
+        .select-option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-submit {
+            flex: 1;
+            background: #16c784;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:hover {
+            background: #12a570;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 199, 132, 0.4);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: #e94560;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-cancel:hover {
+            background: #d63347;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            background: rgba(233, 69, 96, 0.2);
+            border: 2px solid #e94560;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #16c784;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #e94560;
+        }
+
+        @media (max-width: 600px) {
+            .form-container {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="admin-page">
+    <a th:href="@{/admin/users}" class="back-link" style="margin-left: 20px; display: block; margin-top: 20px;">← Back to Users</a>
+
+    <div class="form-container">
+        <h1 class="form-title">🔗 Assign Club to Club Head</h1>
+        <p class="form-subtitle">Select a club to assign to this user</p>
+
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- User Info Section -->
+        <div class="user-info-card">
+            <div class="user-info-label">👤 User Details</div>
+            <div class="user-info-value">
+                <strong th:text="${user.name}">User Name</strong>
+            </div>
+            <div class="user-info-value" style="font-size: 12px; color: #999;">
+                <span th:text="${user.email}">user@example.com</span>
+            </div>
+            <div class="user-info-value" style="margin-top: 12px;">
+                <strong>📋 Role:</strong> <span th:text="${user.role.roleName}">CLUB_HEAD</span>
+            </div>
+        </div>
+
+        <!-- Assign Club Form -->
+        <form th:action="@{/admin/users/{id}/assign-club(id=${user.userId})}" method="post">
+            <div class="form-group">
+                <label for="clubId">🏢 Select Club *</label>
+                <select id="clubId" name="clubId" required>
+                    <option value="">-- Choose a Club --</option>
+                    <option class="select-option"
+                            th:each="club : ${clubs}" 
+                            th:value="${club.clubId}" 
+                            th:text="${club.clubName}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">✓ Assign Club</button>
+                <a th:href="@{/admin/users}" class="btn-cancel">← Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

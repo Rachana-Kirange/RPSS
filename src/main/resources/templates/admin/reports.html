@@ -3,8 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports | Eventra</title>
+    <title>📊 Reports | Admin Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .page-shell {
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .brand span {
+            color: #16c784;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        .content-card {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 36px !important;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px !important;
+            margin-bottom: 20px;
+        }
+
+        .content-card h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 28px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .reports-table thead {
+            background-color: #f9f9f9;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .reports-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .reports-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .reports-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-revisions {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-review {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-review:hover {
+            background-color: #5568d3;
+        }
+
+        .btn-view {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #5a6268;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .no-reports {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .reports-table {
+                font-size: 12px;
+            }
+
+            .reports-table th, .reports-table td {
+                padding: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="page-shell">
@@ -13,26 +212,61 @@
         <nav class="nav">
             <a th:href="@{/dashboard}">Dashboard</a>
             <a th:href="@{/admin/events/pending}">Pending Events</a>
+            <a th:href="@{/admin/users}">Manage Users</a>
         </nav>
     </header>
 
-    <main class="content-card" style="padding: 36px; margin-top: 16px;">
-        <h2>Event Reports</h2>
-        <div th:if="${#lists.isEmpty(completedEvents)}" class="empty-state">No completed events are ready for reporting yet.</div>
-        <div th:unless="${#lists.isEmpty(completedEvents)}" class="event-list">
-            <div class="event-item" th:each="event : ${completedEvents}">
-                <h4 th:text="${event.title}">Event</h4>
-                <div class="event-meta">
-                    <strong>Club:</strong> <span th:text="${event.club.clubName}">club</span><br>
-                    <strong>Date:</strong> <span th:text="${event.eventDate}">date</span>
-                </div>
-                <div class="quick-links">
-                    <form th:action="@{/admin/reports/{eventId}/generate(eventId=${event.eventId})}" method="post">
-                        <button type="submit">Generate Report</button>
-                    </form>
-                    <a class="button-link" th:href="@{/admin/reports/{eventId}(eventId=${event.eventId})}">View Report</a>
-                </div>
-            </div>
+    <main class="content-card">
+        <h2>📊 Event Reports</h2>
+        
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(completedEvents)}" class="empty-state">
+            <p>⚠️ No completed events are ready for reporting yet.</p>
+            <p style="font-size: 14px; margin-top: 10px;">Once events are completed, their reports will appear here.</p>
+        </div>
+
+        <!-- Reports Table -->
+        <div th:unless="${#lists.isEmpty(completedEvents)}">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th>Event Title</th>
+                        <th>Club</th>
+                        <th>Event Date</th>
+                        <th>Report Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="event : ${completedEvents}">
+                        <td th:text="${event.title}">Event Title</td>
+                        <td th:text="${event.club.clubName}">Club Name</td>
+                        <td th:text="${#temporals.format(event.eventDate, 'dd MMM yyyy')}">Date</td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${event.reportStatus == null or event.reportStatus.name() == 'PENDING'} ? 'status-pending' : 
+                                                  ${event.reportStatus.name() == 'APPROVED'} ? 'status-approved' : 
+                                                  ${event.reportStatus.name() == 'REJECTED'} ? 'status-rejected' : 
+                                                  'status-revisions'"
+                                  th:text="${event.reportStatus != null} ? ${event.reportStatus.displayName} : 'Pending'">
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${event.reportSubmittedDate}" 
+                                  th:text="${#temporals.format(event.reportSubmittedDate, 'dd MMM')}">
+                            </span>
+                            <span th:unless="${event.reportSubmittedDate}" style="color: #999;">—</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a th:href="@{/admin/reports/{eventId}/review(eventId=${event.eventId})}" class="action-btn btn-review">Review</a>
+                                <a th:href="@{/admin/reports/{eventId}(eventId=${event.eventId})}" class="action-btn btn-view">View</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </main>
 </div>

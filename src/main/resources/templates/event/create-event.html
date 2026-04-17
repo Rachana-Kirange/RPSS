@@ -54,6 +54,43 @@
                 <input type="number" th:field="*{maxCapacity}" min="5" required>
             </label>
 
+            <fieldset style="border:1px solid var(--line); border-radius:14px; padding:16px; background-color:rgba(0,0,0,0.02);">
+                <legend style="font-weight:600; padding:0 8px;">Event Options</legend>
+
+                <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                    <input type="checkbox" th:field="*{requiresQR}" value="true">
+                    <span>Require QR Code for attendance</span>
+                </label>
+
+                <label style="display:flex; align-items:center; gap:8px;">
+                    <input type="checkbox" th:field="*{requiresPayment}" value="true" id="paymentCheckbox">
+                    <span>Payment Required</span>
+                </label>
+
+                <label id="paymentAmountLabel" style="display:none; margin-top:12px;">
+                    Payment Amount (₹)
+                    <input type="number" th:field="*{paymentAmount}" min="1" step="0.01" placeholder="0.00">
+                </label>
+            </fieldset>
+
+            <label>
+                Activity Proposal
+                <textarea th:field="*{activityProposal}" rows="4" placeholder="Describe the activity/event proposal for admin review..." style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
+            </label>
+
+            <script>
+                // Show/hide payment amount based on checkbox
+                const paymentCheckbox = document.getElementById('paymentCheckbox');
+                const paymentAmountLabel = document.getElementById('paymentAmountLabel');
+                
+                function togglePaymentAmount() {
+                    paymentAmountLabel.style.display = paymentCheckbox.checked ? 'block' : 'none';
+                }
+                
+                paymentCheckbox.addEventListener('change', togglePaymentAmount);
+                togglePaymentAmount(); // Initial state
+            </script>
+
             <button type="submit">Submit Event</button>
         </form>
     </main>

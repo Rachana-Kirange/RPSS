@@ -56,6 +56,41 @@ public class EventService {
 }
 
     /**
+     * Create a new event with optional fields (Club Head)
+     */
+    public Event createEvent(String title, String description, LocalDateTime eventDate,
+                        String venue, Integer maxCapacity, Long clubId, User user,
+                        Boolean requiresPayment, java.math.BigDecimal paymentAmount,
+                        Boolean requiresQR, String activityProposal) {
+
+        // 🔥 ROLE CHECK HERE (MAIN FIX)
+        if (!user.getRole().getRoleName().name().equals("CLUB_HEAD")) {
+            throw new RuntimeException("Only Club Heads can create events");
+        }
+
+        Club club = clubRepository.findById(clubId)
+            .orElseThrow(() -> new RuntimeException("Club not found"));
+
+        Event event = new Event();
+        event.setTitle(title);
+        event.setDescription(description);
+        event.setEventDate(eventDate);
+        event.setVenue(venue);
+        event.setMaxCapacity(maxCapacity);
+        event.setClub(club);
+        event.setCreatedBy(user);
+        event.setStatus(EventStatus.PENDING);
+        event.setRequiresPayment(requiresPayment != null ? requiresPayment : false);
+        if (requiresPayment != null && requiresPayment && paymentAmount != null) {
+            event.setPaymentAmount(paymentAmount);
+        }
+        event.setRequiresQR(requiresQR != null ? requiresQR : false);
+        event.setActivityProposal(activityProposal);
+
+        return eventRepository.save(event);
+    }
+
+    /**
      * Approve event (Admin)
      */
     public Event approveEvent(Long eventId, User admin) {
@@ -173,5 +208,35 @@ public class EventService {
      */
     public long getEventCountByStatus(EventStatus status) {
         return eventRepository.countByStatus(status);
+    }
+
+    /**
+     * Save event report (Club Head)
+     */
+    public Event saveEventReport(Long eventId, String report) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        event.setEventReport(report);
+        event.setReportSubmittedDate(LocalDateTime.now());
+        event.setReportStatus(com.eventra.eventra.enums.ReportStatus.PENDING);
+        log.info(String.format("Event report saved for event: %d", eventId));
+        return eventRepository.save(event);
+    }
+
+    /**
+     * Get event report
+     */
+    public String getEventReport(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new RuntimeException("Event not found"));
+        return event.getEventReport();
+    }
+
+    /**
+     * Save event (generic method to persist changes)
+     */
+    public Event updateEvent(Event event) {
+        return eventRepository.save(event);
     }
 }

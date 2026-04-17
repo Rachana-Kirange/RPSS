@@ -29,14 +29,14 @@ public class FeedbackService {
     /**
      * Submit feedback for event
      */
-    public Feedback submitFeedback(Long eventId, User participant, Integer rating, String comment) {
-        log.info(String.format("Submitting feedback for event: %d by user: %s", eventId, participant.getEmail()));
+    public Feedback submitFeedback(Long eventId, User student, Integer rating, String comment) {
+        log.info(String.format("Submitting feedback for event: %d by user: %s", eventId, student.getEmail()));
 
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
 
         // Check if feedback already exists
-        Optional<Feedback> existingFeedback = feedbackRepository.findByEventAndParticipant(event, participant);
+        Optional<Feedback> existingFeedback = feedbackRepository.findByEventAndStudent(event, student);
         if (existingFeedback.isPresent()) {
             throw new IllegalArgumentException("Feedback already submitted for this event");
         }
@@ -47,7 +47,7 @@ public class FeedbackService {
 
         Feedback feedback = new Feedback();
         feedback.setEvent(event);
-        feedback.setParticipant(participant);
+        feedback.setStudent(student);
         feedback.setRating(rating);
         feedback.setComment(comment);
 
@@ -114,7 +114,7 @@ public class FeedbackService {
     public boolean canSubmitFeedback(Long eventId, Long userId) {
         Optional<Feedback> existing = feedbackRepository.findByEventEventId(eventId)
             .stream()
-            .filter(f -> f.getParticipant().getUserId().equals(userId))
+            .filter(f -> f.getStudent().getUserId().equals(userId))
             .findFirst();
 
         return existing.isEmpty();

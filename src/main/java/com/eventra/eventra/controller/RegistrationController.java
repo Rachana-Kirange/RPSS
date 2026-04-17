@@ -63,7 +63,7 @@ public class RegistrationController {
             return "redirect:/auth/login";
         }
 
-        // ROLE CHECK
+        // ROLE CHECK: Only PARTICIPANT can register for events
         if (!user.getRole().getRoleName().equals(RoleEnum.PARTICIPANT)) {
             redirectAttributes.addFlashAttribute("error", "Only participants can register for events");
             return "redirect:/dashboard";
@@ -84,14 +84,14 @@ public class RegistrationController {
                 return "redirect:/events/" + eventId;
             }
         } catch (Exception e) {
-            log.warning("Error checking existing registration: " + e.getMessage());
+            log.warning(String.format("Error checking existing registration: %s", e.getMessage()));
         }
 
         // Pre-fill form with user data
         EventRegistrationDTO dto = new EventRegistrationDTO();
         dto.setEventId(eventId);
-        dto.setParticipantFullName(user.getName());
-        dto.setParticipantEmail(user.getEmail());
+        dto.setStudentFullName(user.getName());
+        dto.setStudentEmail(user.getEmail());
         dto.setMobileNumber(user.getPhone());
 
         model.addAttribute("eventRegistrationDTO", dto);
@@ -115,7 +115,7 @@ public class RegistrationController {
             return "redirect:/auth/login";
         }
 
-        // ROLE CHECK
+        // ROLE CHECK: Only PARTICIPANT can register for events
         if (!user.getRole().getRoleName().equals(RoleEnum.PARTICIPANT)) {
             redirectAttributes.addFlashAttribute("error", "Only participants can register for events");
             return "redirect:/dashboard";
@@ -128,7 +128,7 @@ public class RegistrationController {
         }
 
         try {
-            // Create registration with participant details
+            // Create registration with student details
             Registration registration = registrationService.registerForEventWithDetails(
                 eventId, user, registrationDTO
             );
@@ -143,8 +143,7 @@ public class RegistrationController {
             } else {
                 // Generate QR pass
                 passService.generateQRPass(registration);
-                log.info("User registered for event: " + eventId + 
-                        " Registration ID: " + registration.getRegistrationId());
+                log.info(String.format("User registered for event: %d with Registration ID: %d", eventId, registration.getRegistrationId()));
                 return "redirect:/registrations/" + registration.getRegistrationId() + "/pass";
             }
 
@@ -152,7 +151,7 @@ public class RegistrationController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/events/" + eventId;
         } catch (Exception e) {
-            log.severe("Error during registration: " + e.getMessage());
+            log.severe(String.format("Error during registration: %s", e.getMessage()));
             redirectAttributes.addFlashAttribute("error", "An error occurred: " + e.getMessage());
             return "redirect:/events/" + eventId;
         }
@@ -177,7 +176,7 @@ public class RegistrationController {
         }
 
         // OWNERSHIP CHECK
-        if (!registration.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!registration.get().getStudent().getUserId().equals(user.getUserId())) {
             return "error/unauthorized";
         }
 
@@ -208,7 +207,7 @@ public class RegistrationController {
             return "redirect:/dashboard";
         }
 
-        if (!registration.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!registration.get().getStudent().getUserId().equals(user.getUserId())) {
             redirectAttributes.addFlashAttribute("error", "Unauthorized action");
             return "redirect:/dashboard";
         }
@@ -231,7 +230,7 @@ public class RegistrationController {
             return "redirect:/auth/login";
         }
 
-        var registrations = registrationService.getParticipantRegistrations(user.getUserId());
+        var registrations = registrationService.getStudentRegistrations(user.getUserId());
         model.addAttribute("registrations", registrations);
 
         return "registration/my-registrations";
@@ -255,7 +254,7 @@ public class RegistrationController {
             return ResponseEntity.notFound().build();
         }
 
-        if (!registration.get().getParticipant().getUserId().equals(user.getUserId())) {
+        if (!registration.get().getStudent().getUserId().equals(user.getUserId())) {
             return ResponseEntity.status(403).build();
         }
 

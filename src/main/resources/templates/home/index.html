@@ -11,11 +11,11 @@
     <header class="topbar">
         <a class="brand" th:href="@{/}">Event<span>ra</span></a>
         <nav class="nav">
+            <a th:href="@{/}">Home</a>
             <a th:href="@{/about}">About</a>
             <a th:href="@{/contact}">Contact</a>
             <a th:href="@{/faq}">FAQ</a>
             <a th:href="@{/auth/login}">Login</a>
-            <a class="button-link primary" th:href="@{/auth/register}">Register</a>
         </nav>
     </header>
 
@@ -26,7 +26,7 @@
                 <p>Eventra gives RPSS a single rhythm for event discovery, registrations, club operations, approvals, and post-event reporting. Students stay informed, club heads stay organized, and admins stay in control.</p>
                 <div class="quick-links">
                     <a class="button-link primary" th:href="@{/auth/register}">Get Started</a>
-                    <a class="button-link" th:href="@{/auth/login}">Open Dashboard</a>
+                    <a class="button-link" th:href="@{/auth/login}">Sign In</a>
                 </div>
             </div>
             <aside class="hero-side">

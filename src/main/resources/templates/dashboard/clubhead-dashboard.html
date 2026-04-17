@@ -53,17 +53,55 @@
             </div>
             <div th:unless="${#lists.isEmpty(events)}" class="event-list">
                 <div class="event-item" th:each="event : ${events}">
-                    <h4 th:text="${event.title}">Event title</h4>
-                    <div class="event-meta">
-                        <strong>Status:</strong> <span th:text="${event.status}">PENDING</span><br>
-                        <strong>Date:</strong> <span th:text="${event.eventDate}">date</span><br>
-                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
-                        <strong>Capacity:</strong> <span th:text="${event.maxCapacity}">0</span>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="flex:1;">
+                            <h4 th:text="${event.title}">Event title</h4>
+                            <div class="event-meta">
+                                <strong>Status:</strong> <span th:text="${event.status}" th:class="'badge ' + ${event.statusBadgeClass}">PENDING</span><br>
+                                <strong>Date:</strong> <span th:text="${#temporals.format(event.eventDate, 'MMM dd, yyyy HH:mm')}">date</span><br>
+                                <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                                <strong>Registrations:</strong> <span th:text="${event.registrationCount} + ' / ' + ${event.maxCapacity}">0 / 100</span><br>
+                                <div th:if="${event.activityProposal}" style="margin-top:8px;">
+                                    <strong>Proposal:</strong> <span th:text="${event.activityProposal.substring(0, 50) + '...'}">proposal</span>
+                                </div>
+                                <div style="margin-top:8px;">
+                                    <strong>QR Required:</strong> <span th:text="${event.requiresQR ? 'Yes' : 'No'}">No</span> |
+                                    <strong>Payment:</strong> <span th:text="${event.requiresPayment ? 'Yes' : 'No'}">No</span>
+                                    <span th:if="${event.requiresPayment}" th:text="' (₹' + ${event.paymentAmount} + ')'"> (₹0)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-buttons" style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">
+                            <a th:href="@{/events/{id}(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">View Details</a>
+                            <a th:href="@{/events/{id}/participants(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Participants</a>
+                            <a th:href="@{/events/{id}/media(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Media</a>
+                            <a th:href="@{/events/{id}/report(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Report</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
+
+        <section class="list-card" style="margin-top:24px;">
+            <h3>Available Events to Register</h3>
+            <p class="muted" style="font-size:0.9rem;">As a club head, you can also register for other club events.</p>
+            <div id="availableEventsContainer" style="margin-top:12px;">
+                <p style="color: var(--shadow); font-size:0.9rem;">Loading events...</p>
+            </div>
+        </section>
     </main>
-</div>
-</body>
-</html>
+
+    <style>
+        .action-buttons a {
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .action-buttons a:hover {
+            background-color: var(--primary-dark);
+        }
+    </style>
+

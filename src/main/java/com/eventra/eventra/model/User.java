@@ -5,6 +5,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 
+import com.eventra.eventra.enums.UserStatus;
+
 @Entity
 @Table(name = "users", indexes = {
     @Index(name = "idx_email", columnList = "email"),
@@ -38,9 +40,37 @@ public class User {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus approvalStatus = UserStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column
+    private LocalDateTime approvalDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @Column
+    private LocalDateTime lastRoleChangeDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_changed_by")
+    private User lastRoleChangedBy;
+
+    @Column
+    private LocalDateTime clubAssignmentDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_club_by")
+    private User clubAssignedBy;
 
     @PrePersist
     protected void onCreate() {
@@ -140,5 +170,84 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public UserStatus getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(UserStatus approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
+    public User getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(User approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public LocalDateTime getApprovalDate() {
+        return approvalDate;
+    }
+
+    public void setApprovalDate(LocalDateTime approvalDate) {
+        this.approvalDate = approvalDate;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
+    }
+
+    public LocalDateTime getLastRoleChangeDate() {
+        return lastRoleChangeDate;
+    }
+
+    public void setLastRoleChangeDate(LocalDateTime lastRoleChangeDate) {
+        this.lastRoleChangeDate = lastRoleChangeDate;
+    }
+
+    public User getLastRoleChangedBy() {
+        return lastRoleChangedBy;
+    }
+
+    public void setLastRoleChangedBy(User lastRoleChangedBy) {
+        this.lastRoleChangedBy = lastRoleChangedBy;
+    }
+
+    public LocalDateTime getClubAssignmentDate() {
+        return clubAssignmentDate;
+    }
+
+    public void setClubAssignmentDate(LocalDateTime clubAssignmentDate) {
+        this.clubAssignmentDate = clubAssignmentDate;
+    }
+
+    public User getClubAssignedBy() {
+        return clubAssignedBy;
+    }
+
+    public void setClubAssignedBy(User clubAssignedBy) {
+        this.clubAssignedBy = clubAssignedBy;
+    }
+
+    @Transient
+    public boolean isApproved() {
+        return approvalStatus == UserStatus.APPROVED;
+    }
+
+    @Transient
+    public boolean isPending() {
+        return approvalStatus == UserStatus.PENDING;
+    }
+
+    @Transient
+    public boolean isRejected() {
+        return approvalStatus == UserStatus.REJECTED;
     }
 }

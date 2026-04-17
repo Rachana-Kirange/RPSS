@@ -31,11 +31,17 @@ public class EventCreateDTO {
     @DecimalMax(value = "100000.0", message = "Payment amount cannot exceed 100000")
     private BigDecimal paymentAmount;
 
+    private Boolean requiresQR = false;
+
+    @Size(min = 10, max = 2000, message = "Activity proposal must be between 10 and 2000 characters")
+    private String activityProposal;
+
     public EventCreateDTO() {
     }
 
     public EventCreateDTO(String title, String description, String eventDateTime, String venue,
-                          Integer maxCapacity, Boolean requiresPayment, BigDecimal paymentAmount) {
+                          Integer maxCapacity, Boolean requiresPayment, BigDecimal paymentAmount,
+                          Boolean requiresQR, String activityProposal) {
         this.title = title;
         this.description = description;
         this.eventDateTime = eventDateTime;
@@ -43,6 +49,8 @@ public class EventCreateDTO {
         this.maxCapacity = maxCapacity;
         this.requiresPayment = requiresPayment;
         this.paymentAmount = paymentAmount;
+        this.requiresQR = requiresQR;
+        this.activityProposal = activityProposal;
     }
 
     public String getTitle() {
@@ -99,5 +107,21 @@ public class EventCreateDTO {
 
     public void setPaymentAmount(BigDecimal paymentAmount) {
         this.paymentAmount = paymentAmount;
+    }
+
+    public Boolean getRequiresQR() {
+        return requiresQR;
+    }
+
+    public void setRequiresQR(Boolean requiresQR) {
+        this.requiresQR = requiresQR;
+    }
+
+    public String getActivityProposal() {
+        return activityProposal;
+    }
+
+    public void setActivityProposal(String activityProposal) {
+        this.activityProposal = activityProposal;
     }
 }

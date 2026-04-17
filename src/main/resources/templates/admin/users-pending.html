@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending User Approvals - Eventra Admin</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .approval-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .approval-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .approval-count {
+            background: #ffc107;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .approval-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #ffc107;
+            transition: all 0.3s ease;
+        }
+
+        .user-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .user-phone {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .user-registration-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background: #218838;
+        }
+
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background: #c82333;
+        }
+
+        .rejection-form {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 5px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .rejection-form.active {
+            display: block;
+        }
+
+        .rejection-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            box-sizing: border-box;
+        }
+
+        .rejection-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rejection-actions .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/users/all}">All Users</a>
+            <a th:href="@{/admin/clubs}">Clubs</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="page-container">
+        <a href="/admin/users/all" class="back-link">← Back to Users</a>
+
+        <div class="approval-header">
+            <div>
+                <h1 class="approval-title">Pending User Approvals</h1>
+                <p style="color: #666; margin-top: 5px;">Review and approve new user registrations</p>
+            </div>
+            <div class="approval-count" th:text="|${totalPending} Pending|"></div>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- Empty State -->
+        <div th:if="${pendingUsers.isEmpty()}" class="empty-state">
+            <div class="empty-icon">✓</div>
+            <div class="empty-title">No Pending Approvals</div>
+            <div class="empty-text">All user registrations have been reviewed and approved!</div>
+        </div>
+
+        <!-- User List -->
+        <div th:if="${!pendingUsers.isEmpty()}" class="approval-list">
+            <div th:each="user : ${pendingUsers}" class="user-card" th:id="'user-' + ${user.userId}">
+                <div class="user-header">
+                    <div class="user-info">
+                        <div class="user-name" th:text="${user.name}"></div>
+                        <div>
+                            <span class="user-role" th:text="${user.role.roleName}"></span>
+                            <span style="font-size: 12px; color: #ffc107; font-weight: bold;">● PENDING</span>
+                        </div>
+                        <div class="user-email">📧 <span th:text="${user.email}"></span></div>
+                        <div class="user-phone">📱 <span th:text="${user.phone}"></span></div>
+                        <div class="user-registration-date">Registered: <span th:text="${#temporals.format(user.registrationDate, 'yyyy-MM-dd HH:mm')}"></span></div>
+                    </div>
+                </div>
+
+                <div class="user-actions">
+                    <form th:action="@{/admin/users/{id}/approve(id=${user.userId})}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to approve this user?');">
+                        <button type="submit" class="btn btn-approve">✓ Approve</button>
+                    </form>
+                    <button class="btn btn-reject" type="button" th:data-user-id="${user.userId}" onclick="toggleRejectionForm(this.getAttribute('data-user-id'))">✗ Reject</button>
+                </div>
+
+                <!-- Rejection Form (Initially Hidden) -->
+                <div class="rejection-form" th:id="'rejection-form-' + ${user.userId}">
+                    <form th:action="@{/admin/users/{id}/reject(id=${user.userId})}" method="post">
+                        <label style="display: block; font-weight: bold; margin-bottom: 8px;">Rejection Reason:</label>
+                        <textarea name="reason" placeholder="Enter the reason for rejection..." required></textarea>
+                        <div class="rejection-actions">
+                            <button type="submit" class="btn btn-reject">Confirm Rejection</button>
+                            <button type="button" class="btn" th:data-user-id="${user.userId}" onclick="toggleRejectionForm(this.getAttribute('data-user-id'))" style="background: #6c757d; color: white;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+    <script>
+        function toggleRejectionForm(userId) {
+            const form = document.getElementById('rejection-form-' + userId);
+            form.classList.toggle('active');
+            if (form.classList.contains('active')) {
+                const textarea = form.querySelector('textarea');
+                setTimeout(() => textarea.focus(), 100);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const errorMsg = document.querySelector('.error-message');
+            if (errorMsg) {
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

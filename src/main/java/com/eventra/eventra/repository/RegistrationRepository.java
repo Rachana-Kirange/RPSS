@@ -14,11 +14,11 @@ import java.util.Optional;
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
 
-    Optional<Registration> findByEventAndParticipant(Event event, User participant);
+    Optional<Registration> findByEventAndStudent(Event event, User student);
 
     List<Registration> findByEventEventId(Long eventId);
 
-    List<Registration> findByParticipantUserId(Long userId);
+    List<Registration> findByStudentUserId(Long userId);
 
     long countByEventEventId(Long eventId);
 
@@ -28,5 +28,7 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     @Query("SELECT COUNT(r) FROM Registration r WHERE r.event.eventId = :eventId AND r.paymentStatus = 'COMPLETED'")
     long countPaidRegistrations(@Param("eventId") Long eventId);
 
-    boolean existsByEventAndParticipant(Event event, User participant);
+    boolean existsByEventAndStudent(Event event, User student);
+
+    long countByEvent(Event event);
 }

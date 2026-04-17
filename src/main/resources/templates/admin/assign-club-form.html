@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Assign Club - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .error-message {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            border-radius: 5px;
+            color: #c00;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            border-radius: 5px;
+            color: #060;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+
+        .user-info {
+            background-color: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .user-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .user-info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #333;
+            width: 35%;
+        }
+
+        .info-value {
+            color: #666;
+            text-align: right;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        select:hover {
+            border-color: #667eea;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        option {
+            padding: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button, a.btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-assign {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-assign:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-assign:active {
+            transform: translateY(0);
+        }
+
+        .btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background-color: #d0d0d0;
+        }
+
+        .note {
+            background-color: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .no-clubs {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .no-clubs p {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>Assign Club</h1>
+                <p>Assign a club to a Club Head</p>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div th:if="${error}" class="error-message">
+                    <span class="icon">⚠️</span>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <!-- User Information -->
+                <div th:if="${user}" class="user-info">
+                    <div class="user-info-row">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value" th:text="${user.name}"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" th:text="${user.email}"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="info-label">Role:</span>
+                        <span class="info-value" th:text="${user.role.roleName}"></span>
+                    </div>
+                    <div class="user-info-row">
+                        <span class="info-label">Approval Status:</span>
+                        <span class="info-value" th:text="${user.approved} ? 'Approved' : 'Pending'"></span>
+                    </div>
+                </div>
+
+                <!-- Club Assignment Form -->
+                <div th:if="${user and clubs and clubs.size() > 0}">
+                    <form method="POST" th:action="@{/admin/users/{id}/assign-club(id=${user.userId})}">
+                        <div class="form-group">
+                            <label for="clubId">Select Club</label>
+                            <select id="clubId" name="clubId" required>
+                                <option value="">-- Choose a Club --</option>
+                                <option th:each="club : ${clubs}" 
+                                        th:value="${club.clubId}" 
+                                        th:text="${club.clubName}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="note">
+                            <strong>ℹ️ Note:</strong> This user will become the head of the selected club and will have access to manage events and participants.
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn-assign">Assign Club</button>
+                            <a href="/admin/users" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- No Clubs Available -->
+                <div th:if="${user and (clubs == null or clubs.size() == 0)}" class="no-clubs">
+                    <p>⚠️ No clubs available to assign</p>
+                    <p style="font-size: 12px; color: #bbb;">Please create clubs first before assigning them to club heads.</p>
+                    <a href="/admin/clubs" class="btn btn-assign" style="margin-top: 10px;">Create New Club</a>
+                </div>
+
+                <!-- No User Found -->
+                <div th:if="${!user}" class="no-clubs">
+                    <p>❌ User not found</p>
+                    <p style="font-size: 12px; color: #bbb;">The requested user could not be found in the system.</p>
+                    <a href="/admin/users" class="btn btn-cancel" style="margin-top: 10px;">Back to Users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

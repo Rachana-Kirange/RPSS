@@ -1,6 +1,8 @@
 package com.eventra.eventra.repository;
 
 import com.eventra.eventra.model.User;
+import com.eventra.eventra.enums.UserStatus;
+import com.eventra.eventra.enums.RoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,4 +29,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByPhone(String phone);
+
+    // Approval Status Query Methods
+    List<User> findByApprovalStatus(UserStatus approvalStatus);
+
+    @Query("SELECT u FROM User u WHERE u.approvalStatus = :status AND u.role.roleName = :roleNameValue")
+    List<User> findByApprovalStatusAndRole(@Param("status") UserStatus status, @Param("roleNameValue") RoleEnum role);
+
+    long countByApprovalStatus(UserStatus approvalStatus);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.approvalStatus = :status AND u.role.roleName = :roleNameValue")
+    long countByApprovalStatusAndRole(@Param("status") UserStatus status, @Param("roleNameValue") RoleEnum role);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role.roleName = :roleName")
+    long countByRoleName(@Param("roleName") RoleEnum roleName);
 }

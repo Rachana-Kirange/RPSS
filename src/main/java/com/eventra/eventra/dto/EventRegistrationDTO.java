@@ -6,7 +6,7 @@ public class EventRegistrationDTO {
 
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    private String participantFullName;
+    private String studentFullName;
 
     @NotBlank(message = "Section/Class is required")
     @Size(min = 1, max = 50, message = "Section must be up to 50 characters")
@@ -22,29 +22,29 @@ public class EventRegistrationDTO {
 
     @NotBlank(message = "Email address is required")
     @Email(message = "Email must be valid")
-    private String participantEmail;
+    private String studentEmail;
 
     private Long eventId;
 
     public EventRegistrationDTO() {
     }
 
-    public EventRegistrationDTO(String participantFullName, String section, String rollNumber, 
-                                String mobileNumber, String participantEmail, Long eventId) {
-        this.participantFullName = participantFullName;
+    public EventRegistrationDTO(String studentFullName, String section, String rollNumber, 
+                                String mobileNumber, String studentEmail, Long eventId) {
+        this.studentFullName = studentFullName;
         this.section = section;
         this.rollNumber = rollNumber;
         this.mobileNumber = mobileNumber;
-        this.participantEmail = participantEmail;
+        this.studentEmail = studentEmail;
         this.eventId = eventId;
     }
 
-    public String getParticipantFullName() {
-        return participantFullName;
+    public String getStudentFullName() {
+        return studentFullName;
     }
 
-    public void setParticipantFullName(String participantFullName) {
-        this.participantFullName = participantFullName;
+    public void setStudentFullName(String studentFullName) {
+        this.studentFullName = studentFullName;
     }
 
     public String getSection() {
@@ -71,12 +71,12 @@ public class EventRegistrationDTO {
         this.mobileNumber = mobileNumber;
     }
 
-    public String getParticipantEmail() {
-        return participantEmail;
+    public String getStudentEmail() {
+        return studentEmail;
     }
 
-    public void setParticipantEmail(String participantEmail) {
-        this.participantEmail = participantEmail;
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
     }
 
     public Long getEventId() {

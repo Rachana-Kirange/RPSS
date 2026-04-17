@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
-    Optional<Feedback> findByEventAndParticipant(Event event, User participant);
+    Optional<Feedback> findByEventAndStudent(Event event, User student);
 
     List<Feedback> findByEventEventId(Long eventId);
 

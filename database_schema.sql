@@ -19,17 +19,17 @@ USE rpss_db;
 -- ============================================
 CREATE TABLE roles (
     role_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    role_name ENUM('PARTICIPANT', 'CLUB_HEAD', 'ADMIN') UNIQUE NOT NULL,
+    role_name ENUM('STUDENT', 'CLUB_HEAD', 'ADMIN') UNIQUE NOT NULL,
     description VARCHAR(255),
     permissions JSON,
     created_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO roles (role_name, description, permissions) VALUES
-('PARTICIPANT', 'Can register for events, download pass, and give feedback',
+('STUDENT', 'Can register for events, download pass, and give feedback',
  JSON_OBJECT('view_events', true, 'register_event', true, 'download_pass', true, 'feedback', true)),
-('CLUB_HEAD', 'Can create events, manage participants, upload media',
- JSON_OBJECT('create_event', true, 'manage_participants', true, 'upload_media', true, 'submit_report', true)),
+('CLUB_HEAD', 'Can create events, manage students, upload media',
+ JSON_OBJECT('create_event', true, 'manage_students', true, 'upload_media', true, 'submit_report', true)),
 ('ADMIN', 'Full system access - approve events, manage users and clubs, generate reports',
  JSON_OBJECT('approve_events', true, 'manage_users', true, 'manage_clubs', true, 'generate_reports', true, 'view_analytics', true));
 
@@ -109,16 +109,16 @@ CREATE TABLE events (
 CREATE TABLE registrations (
     registration_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     event_id BIGINT NOT NULL,
-    participant_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
     registration_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     status ENUM('CONFIRMED', 'CANCELLED', 'ATTENDED') DEFAULT 'CONFIRMED',
     payment_status ENUM('NOT_REQUIRED', 'PENDING', 'COMPLETED', 'REFUNDED') DEFAULT 'NOT_REQUIRED',
     transaction_id VARCHAR(100),
     payment_date DATETIME,
-    UNIQUE KEY unique_event_participant (event_id, participant_id),
+    UNIQUE KEY unique_event_student (event_id, student_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
-    FOREIGN KEY (participant_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    INDEX idx_participant (participant_id),
+    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_student (student_id),
     INDEX idx_event (event_id),
     INDEX idx_status (status)
 );
@@ -147,13 +147,13 @@ CREATE TABLE passes (
 CREATE TABLE feedback (
     feedback_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     event_id BIGINT NOT NULL,
-    participant_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
     rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     submitted_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_event_feedback (event_id, participant_id),
+    UNIQUE KEY unique_event_feedback (event_id, student_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
-    FOREIGN KEY (participant_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE,
     INDEX idx_event (event_id),
     INDEX idx_rating (rating)
 );
@@ -184,7 +184,7 @@ CREATE TABLE media (
 CREATE TABLE reports (
     report_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     event_id BIGINT UNIQUE NOT NULL,
-    total_participants INT DEFAULT 0,
+    total_students INT DEFAULT 0,
     total_attended INT DEFAULT 0,
     total_revenue DECIMAL(12, 2) DEFAULT 0,
     average_rating DECIMAL(3, 2),
@@ -267,7 +267,7 @@ CREATE VIEW event_statistics AS
 SELECT
     e.event_id,
     e.title,
-    COUNT(DISTINCT r.participant_id) as total_registrations,
+    COUNT(DISTINCT r.student_id) as total_registrations,
     SUM(CASE WHEN r.payment_status = 'COMPLETED' THEN r.event_id ELSE 0 END) as paid_registrations,
     SUM(e.payment_amount * COUNT(r.registration_id)) as total_revenue,
     AVG(f.rating) as average_rating,
@@ -283,7 +283,7 @@ SELECT
     c.club_id,
     c.club_name,
     COUNT(DISTINCT e.event_id) as total_events,
-    COUNT(DISTINCT r.participant_id) as total_participants,
+    COUNT(DISTINCT r.student_id) as total_students,
     SUM(r.event_id) as total_revenue,
     AVG(f.rating) as average_event_rating
 FROM clubs c
@@ -300,10 +300,10 @@ GROUP BY c.club_id;
 DELIMITER //
 CREATE PROCEDURE generate_event_report(IN p_event_id BIGINT)
 BEGIN
-    INSERT INTO reports (event_id, total_participants, total_revenue, average_rating, feedback_count, generated_date)
+    INSERT INTO reports (event_id, total_students, total_revenue, average_rating, feedback_count, generated_date)
     SELECT
         e.event_id,
-        COUNT(DISTINCT r.participant_id),
+        COUNT(DISTINCT r.student_id),
         SUM(CASE WHEN r.payment_status = 'COMPLETED' THEN e.payment_amount ELSE 0 END),
         AVG(f.rating),
         COUNT(DISTINCT f.feedback_id),

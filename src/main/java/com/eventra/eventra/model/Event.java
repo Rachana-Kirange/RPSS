@@ -1,6 +1,7 @@
 package com.eventra.eventra.model;
 
 import com.eventra.eventra.enums.EventStatus;
+import com.eventra.eventra.enums.ReportStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -52,6 +53,29 @@ public class Event {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal paymentAmount;
+
+    @Column(nullable = false)
+    private Boolean requiresQR = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String activityProposal;
+
+    @Column(columnDefinition = "TEXT")
+    private String eventReport;
+
+    @Column
+    private LocalDateTime reportSubmittedDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private ReportStatus reportStatus = ReportStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "report_reviewed_by")
+    private User reportReviewedBy;
+
+    @Column(columnDefinition = "TEXT")
+    private String reportReviewComments;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -271,5 +295,61 @@ public class Event {
 
     public Boolean getRequiresPayment() {
         return requiresPayment;
+    }
+
+    public Boolean getRequiresQR() {
+        return requiresQR;
+    }
+
+    public void setRequiresQR(Boolean requiresQR) {
+        this.requiresQR = requiresQR;
+    }
+
+    public String getActivityProposal() {
+        return activityProposal;
+    }
+
+    public void setActivityProposal(String activityProposal) {
+        this.activityProposal = activityProposal;
+    }
+
+    public String getEventReport() {
+        return eventReport;
+    }
+
+    public void setEventReport(String eventReport) {
+        this.eventReport = eventReport;
+    }
+
+    public LocalDateTime getReportSubmittedDate() {
+        return reportSubmittedDate;
+    }
+
+    public void setReportSubmittedDate(LocalDateTime reportSubmittedDate) {
+        this.reportSubmittedDate = reportSubmittedDate;
+    }
+
+    public ReportStatus getReportStatus() {
+        return reportStatus;
+    }
+
+    public void setReportStatus(ReportStatus reportStatus) {
+        this.reportStatus = reportStatus;
+    }
+
+    public User getReportReviewedBy() {
+        return reportReviewedBy;
+    }
+
+    public void setReportReviewedBy(User reportReviewedBy) {
+        this.reportReviewedBy = reportReviewedBy;
+    }
+
+    public String getReportReviewComments() {
+        return reportReviewComments;
+    }
+
+    public void setReportReviewComments(String reportReviewComments) {
+        this.reportReviewComments = reportReviewComments;
     }
 }

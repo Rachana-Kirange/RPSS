@@ -144,22 +144,22 @@ class UserServiceTest {
             .build();
     }
 
-    // TEST 1: Register new user as participant
+    // TEST 1: Register new user as student
     @Test
-    void testRegisterUserAsParticipant() {
+    void testRegisterUserAsStudent() {
         // Arrange
-        when(roleRepository.findByRoleName(RoleEnum.PARTICIPANT))
-            .thenReturn(participantRole);
+        when(roleRepository.findByRoleName(RoleEnum.STUDENT))
+            .thenReturn(studentRole);
         when(userRepository.save(any(User.class)))
             .thenReturn(testUser);
 
         // Act
-        User registeredUser = userService.registerUser(testUser, RoleEnum.PARTICIPANT);
+        User registeredUser = userService.registerUser(testUser, RoleEnum.STUDENT);
 
         // Assert
         assertNotNull(registeredUser);
         assertEquals("John Doe", registeredUser.getName());
-        assertEquals(RoleEnum.PARTICIPANT, registeredUser.getRole().getRoleName());
+        assertEquals(RoleEnum.STUDENT, registeredUser.getRole().getRoleName());
         verify(userRepository, times(1)).save(any());
     }
 
@@ -539,7 +539,7 @@ class RegistrationServiceTest {
         when(registrationRepository.save(any(Registration.class))).thenReturn(registration);
 
         // Act
-        Registration result = registrationService.registerForEvent(participant, freeEvent);
+        Registration result = registrationService.registerForEvent(student, freeEvent);
 
         // Assert
         assertNotNull(result);
@@ -562,7 +562,7 @@ class RegistrationServiceTest {
         when(registrationRepository.save(any(Registration.class))).thenReturn(registration);
 
         // Act
-        Registration result = registrationService.registerForEvent(participant, paidEvent);
+        Registration result = registrationService.registerForEvent(student, paidEvent);
 
         // Assert
         assertEquals(PaymentStatus.PENDING, result.getPaymentStatus());
@@ -600,12 +600,12 @@ class RegistrationServiceTest {
     @Test
     void testPreventDuplicateRegistration() {
         // Arrange
-        when(registrationRepository.existsByEventAndParticipant(freeEvent, participant))
+        when(registrationRepository.existsByEventAndStudent(freeEvent, student))
             .thenReturn(true);
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            registrationService.registerForEvent(participant, freeEvent);
+            registrationService.registerForEvent(student, freeEvent);
         });
     }
 
@@ -621,7 +621,7 @@ class RegistrationServiceTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            registrationService.registerForEvent(participant, fullEvent);
+            registrationService.registerForEvent(student, fullEvent);
         }, "Event is full");
     }
 
@@ -695,8 +695,8 @@ class UserControllerIT {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        participantRole = Role.builder()
-            .roleName(RoleEnum.PARTICIPANT)
+        studentRole = Role.builder()
+            .roleName(RoleEnum.STUDENT)
             .build();
         roleRepository.save(participantRole);
     }
@@ -710,9 +710,9 @@ class UserControllerIT {
             .andExpect(model().attributeExists("roles"));
     }
 
-    // TEST 2: Register user as participant
+    // TEST 2: Register user as student
     @Test
-    void testRegisterUserAsParticipant() throws Exception {
+    void testRegisterUserAsStudent() throws Exception {
         mockMvc.perform(post("/auth/register")
                 .param("name", "John Doe")
                 .param("email", "john@example.com")
@@ -769,7 +769,7 @@ class UserControllerIT {
                 .param("email", "john@example.com")
                 .param("password", "password123"))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/dashboard/participant"));
+            .andExpect(redirectedUrl("/dashboard/student"));
     }
 
     // TEST 5: Login with invalid credentials
@@ -1078,7 +1078,7 @@ class E2EEventWorkflowTest {
         // Setup roles
         Role clubHeadRole = Role.builder().roleName(RoleEnum.CLUB_HEAD).build();
         Role adminRole = Role.builder().roleName(RoleEnum.ADMIN).build();
-        Role participantRole = Role.builder().roleName(RoleEnum.PARTICIPANT).build();
+        Role studentRole = Role.builder().roleName(RoleEnum.STUDENT).build();
         roleRepository.save(clubHeadRole);
         roleRepository.save(adminRole);
         roleRepository.save(participantRole);
@@ -1100,13 +1100,13 @@ class E2EEventWorkflowTest {
         admin.encryptPassword("password123");
         userRepository.save(admin);
 
-        participant = User.builder()
-            .name("Participant")
-            .email("participant@example.com")
-            .role(participantRole)
+        student = User.builder()
+            .name("Student")
+            .email("student@example.com")
+            .role(studentRole)
             .build();
-        participant.encryptPassword("password123");
-        userRepository.save(participant);
+        student.encryptPassword("password123");
+        userRepository.save(student);
 
         // Setup club
         club = Club.builder()
@@ -1121,7 +1121,7 @@ class E2EEventWorkflowTest {
     void testCompleteEventLifecycle() throws Exception {
         MockHttpSession clubHeadSession = createSession(clubHead);
         MockHttpSession adminSession = createSession(admin);
-        MockHttpSession participantSession = createSession(participant);
+        MockHttpSession studentSession = createSession(student);
 
         // STEP 1: Club head creates event
         mockMvc.perform(post("/event/create")
@@ -1146,13 +1146,13 @@ class E2EEventWorkflowTest {
         event = eventRepository.findById(event.getEventId()).get();
         assert event.getStatus() == EventStatus.APPROVED;
 
-        // STEP 3: Participant registers
+        // STEP 3: Student registers
         mockMvc.perform(post("/registration/register/{eventId}", event.getEventId())
-                .session(participantSession))
+                .session(studentSession))
             .andExpect(status().is3xxRedirection());
 
         Registration registration = registrationRepository
-            .findByEventAndParticipant(event, participant).orElse(null);
+            .findByEventAndStudent(event, student).orElse(null);
         assert registration != null;
         assert registration.getStatus() == RegistrationStatus.CONFIRMED;
 
@@ -1193,7 +1193,7 @@ mvn clean test jacoco:report
 mvn test -Dtest=UserServiceTest
 
 # Run specific test method
-mvn test -Dtest=UserServiceTest#testRegisterUserAsParticipant
+mvn test -Dtest=UserServiceTest#testRegisterUserAsStudent
 
 # Run integration tests only
 mvn test -Dgroups=integration

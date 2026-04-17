@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details | Admin</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .details-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 30px;
+        }
+        .back-button {
+            color: #e94560;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .user-card {
+            background: #0f3460;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e94560;
+        }
+        .user-field {
+            margin: 15px 0;
+        }
+        .user-label {
+            color: #16c784;
+            font-weight: bold;
+        }
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .audit-table th, .audit-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .audit-table th {
+            background: #0f3460;
+            color: #16c784;
+        }
+        .audit-table tr:hover {
+            background: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+<div class="details-container">
+    <a href="/admin/users" class="back-button">← Back to Users</a>
+    
+    <div class="user-card" th:if="${user}">
+        <h2 th:text="${user.name}"></h2>
+        
+        <div class="user-field">
+            <span class="user-label">Email:</span> <span th:text="${user.email}"></span>
+        </div>
+        
+        <div class="user-field">
+            <span class="user-label">Role:</span> <span th:text="${user.role.roleDisplayName}"></span>
+        </div>
+        
+        <div class="user-field">
+            <span class="user-label">Status:</span> 
+            <span th:if="${user.isActive}" style="color: #16c784;">✓ Active</span>
+            <span th:unless="${user.isActive}" style="color: #e94560;">✗ Inactive</span>
+        </div>
+        
+        <div class="user-field">
+            <span class="user-label">Approval Status:</span> <span th:text="${user.approvalStatus}"></span>
+        </div>
+        
+        <div class="user-field">
+            <span class="user-label">Registered:</span> <span th:text="${#dates.format(user.registrationDate, 'dd-MMM-yyyy HH:mm')}"></span>
+        </div>
+        
+        <div class="user-field" th:if="${user.lastLogin}">
+            <span class="user-label">Last Login:</span> <span th:text="${#dates.format(user.lastLogin, 'dd-MMM-yyyy HH:mm')}"></span>
+        </div>
+    </div>
+
+    <h3>Audit Logs</h3>
+    <table class="audit-table" th:if="${!auditLogs.isEmpty()}">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="log : ${auditLogs}">
+                <td th:text="${log.action}"></td>
+                <td th:text="${log.details}"></td>
+                <td th:text="${#dates.format(log.createdAt, 'dd-MMM-yyyy HH:mm')}"></td>
+                <td th:text="${log.status}"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <p th:if="${auditLogs.isEmpty()}" style="margin-top: 20px; color: #999;">No audit logs found for this user.</p>
+</div>
+</body>
+</html>

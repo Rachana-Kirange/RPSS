@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Participants | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/events}">Events</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 18px;">
+        <div class="section-head" style="margin-bottom: 24px;">
+            <div>
+                <h2>Manage Participants</h2>
+                <p th:text="${event.title}" style="color: var(--shadow); font-size: 0.95rem;">Event title</p>
+            </div>
+            <div>
+                <a th:href="@{/events/{id}(id=${event.eventId})}" class="button-link">Back to Event</a>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div class="grid-card tone-teal">
+                <h3>Total Registrations</h3>
+                <p class="metric" th:text="${participantCount}">0</p>
+            </div>
+            <div class="grid-card tone-blue">
+                <h3>Available Seats</h3>
+                <p class="metric" th:text="${event.availableSeats}">100</p>
+            </div>
+            <div class="grid-card tone-amber">
+                <h3>Occupancy</h3>
+                <p class="metric" th:text="${(participantCount * 100) / event.maxCapacity}">0%</p>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
+            <p>No participants registered for this event yet.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(registrations)}" class="list-card">
+            <h3>Registered Participants</h3>
+            <div style="overflow-x: auto; margin-top: 16px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--line); background-color: rgba(0,0,0,0.02);">
+                            <th style="padding: 12px; text-align: left;">Student Name</th>
+                            <th style="padding: 12px; text-align: left;">Email</th>
+                            <th style="padding: 12px; text-align: left;">Registered On</th>
+                            <th style="padding: 12px; text-align: left;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="registration : ${registrations}" style="border-bottom: 1px solid var(--line);">
+                            <td style="padding: 12px;" th:text="${registration.student.name}">Student Name</td>
+                            <td style="padding: 12px;" th:text="${registration.student.email}">student@email.com</td>
+                            <td style="padding: 12px;" th:text="${#temporals.format(registration.registrationDate, 'MMM dd, yyyy')}">Jan 01, 2024</td>
+                            <td style="padding: 12px;">
+                                <span th:text="${registration.status}" style="display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: var(--primary); color: white; font-size: 0.8rem;">PENDING</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; padding: 16px; background-color: rgba(0,0,0,0.02); border-radius: 14px; border-left: 4px solid var(--primary);">
+            <h4>Participant Export</h4>
+            <p style="color: var(--shadow); font-size: 0.9rem; margin-bottom: 12px;">Download the list of registered participants for your records.</p>
+            <button type="button" onclick="downloadParticipantList()" style="background-color: var(--primary); color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Download as CSV</button>
+        </div>
+    </main>
+
+    <script>
+        function downloadParticipantList() {
+            const registrations = document.querySelectorAll('table tbody tr');
+            let csv = 'Student Name,Email,Registered On,Status\n';
+            
+            registrations.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const name = cells[0].textContent.trim();
+                const email = cells[1].textContent.trim();
+                const date = cells[2].textContent.trim();
+                const status = cells[3].textContent.trim();
+                csv += `"${name}","${email}","${date}","${status}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'participants.csv';
+            a.click();
+        }
+    </script>
+</div>
+</body>
+</html>

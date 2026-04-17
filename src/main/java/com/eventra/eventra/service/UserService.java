@@ -5,6 +5,7 @@ import com.eventra.eventra.model.Role;
 import com.eventra.eventra.dto.UserRegistrationDTO;
 import com.eventra.eventra.dto.UserLoginDTO;
 import com.eventra.eventra.enums.RoleEnum;
+import com.eventra.eventra.enums.UserStatus;
 import com.eventra.eventra.repository.UserRepository;
 import com.eventra.eventra.repository.RoleRepository;
 import org.springframework.stereotype.Service;
@@ -23,17 +24,21 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ClubService clubService;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, ClubService clubService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.clubService = clubService;
     }
 
     /**
-     * Register a new user in the system
+     * Register a new user in the system with role selection.
+     * Users can register as PARTICIPANT (auto-approved) or CLUB_HEAD (pending approval).
+     * ADMIN role can only be assigned by administrators.
      */
-    public User registerUser(UserRegistrationDTO dto) {
-        log.info(String.format("Registering new user: %s with role: %s", dto.getEmail(), dto.getRole()));
+    public User registerUser(UserRegistrationDTO dto, RoleEnum selectedRole) {
+        log.info(String.format("Registering new user: %s with role: %s", dto.getEmail(), selectedRole));
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             log.warning(String.format("Registration failed - email already exists: %s", dto.getEmail()));
@@ -48,10 +53,17 @@ public class UserService {
             }
         }
 
-        Role role = roleRepository.findByRoleName(dto.getRole())
+        // Only allow PARTICIPANT and CLUB_HEAD roles during registration
+        RoleEnum roleToAssign = selectedRole;
+        if (roleToAssign == null || (roleToAssign != RoleEnum.PARTICIPANT && roleToAssign != RoleEnum.CLUB_HEAD)) {
+            log.warning(String.format("Registration failed - invalid role attempt: %s for email: %s", roleToAssign, dto.getEmail()));
+            throw new IllegalArgumentException("Invalid role selection. Only STUDENT and CLUB_HEAD roles are available during registration.");
+        }
+
+        Role role = roleRepository.findByRoleName(roleToAssign)
             .orElseThrow(() -> {
-                log.severe(String.format("Role not found: %s. Available roles must be initialized in database.", dto.getRole()));
-                return new IllegalArgumentException("Selected role is not available. Please contact administrator.");
+                log.severe(String.format("%s role not found in database. Role initialization required.", roleToAssign));
+                return new IllegalArgumentException("System error: Selected role is not available. Please contact administrator.");
             });
 
         User user = new User();
@@ -61,18 +73,35 @@ public class UserService {
         user.setRole(role);
         user.setIsActive(true);
 
-        // Encrypt password
+        // APPROVAL STATUS LOGIC:
+        // - PARTICIPANT (Students): Auto-approved, can immediately access student dashboard
+        // - CLUB_HEAD: Pending approval, must wait for admin review before accessing club head features
+        if (roleToAssign == RoleEnum.PARTICIPANT) {
+            user.setApprovalStatus(UserStatus.APPROVED); // Auto-approve participants
+        } else if (roleToAssign == RoleEnum.CLUB_HEAD) {
+            user.setApprovalStatus(UserStatus.PENDING); // Requires admin approval
+        }
+
+        // Encrypt password using BCrypt
         user.encryptPassword(dto.getPassword());
         
         // Save user
         User savedUser = userRepository.save(user);
-        
-        // Flush to ensure it's written to database immediately
         userRepository.flush();
         
-        log.info(String.format("User registered successfully: %s (ID: %d) with role: %s", 
-            savedUser.getEmail(), savedUser.getUserId(), role.getRoleName()));
+        log.info(String.format("User registered successfully: %s (ID: %d) with role: %s, approval status: %s", 
+            savedUser.getEmail(), savedUser.getUserId(), roleToAssign, user.getApprovalStatus()));
         return savedUser;
+    }
+
+    /**
+     * Register a new user in the system as PARTICIPANT only (Legacy method).
+     * Users cannot choose their role during registration - they are always registered as PARTICIPANT.
+     * Other roles (CLUB_HEAD, ADMIN) are assigned by administrators only.
+     */
+    public User registerUser(UserRegistrationDTO dto) {
+        // Default to PARTICIPANT role for backward compatibility
+        return registerUser(dto, RoleEnum.PARTICIPANT);
     }
 
     /**
@@ -177,5 +206,74 @@ public class UserService {
         user.encryptPassword(newPassword);
         userRepository.save(user);
         log.info(String.format("Password changed for user: %s", user.getEmail()));
+    }
+
+    // User Approval Workflow Methods
+    public void approveUser(Long userId, Long adminId) {
+        User user = getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User admin = getUserById(adminId).orElseThrow(() -> new RuntimeException("Admin not found"));
+        
+        user.setApprovalStatus(UserStatus.APPROVED);
+        user.setApprovedBy(admin);
+        user.setApprovalDate(LocalDateTime.now());
+        userRepository.save(user);
+        
+        log.info(String.format("User %s approved by admin %s", user.getEmail(), admin.getEmail()));
+    }
+
+    public void rejectUser(Long userId, Long adminId, String reason) {
+        User user = getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User admin = getUserById(adminId).orElseThrow(() -> new RuntimeException("Admin not found"));
+        
+        user.setApprovalStatus(UserStatus.REJECTED);
+        user.setApprovedBy(admin);
+        user.setApprovalDate(LocalDateTime.now());
+        user.setRejectionReason(reason);
+        userRepository.save(user);
+        
+        log.info(String.format("User %s rejected by admin %s. Reason: %s", user.getEmail(), admin.getEmail(), reason));
+    }
+
+    public void suspendUser(Long userId, String reason) {
+        User user = getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setApprovalStatus(UserStatus.SUSPENDED);
+        user.setRejectionReason(reason);
+        userRepository.save(user);
+        
+        log.info(String.format("User %s suspended. Reason: %s", user.getEmail(), reason));
+    }
+
+    public List<User> getPendingUsers() {
+        return userRepository.findByApprovalStatus(UserStatus.PENDING);
+    }
+
+    public List<User> getApprovedUsers() {
+        return userRepository.findByApprovalStatus(UserStatus.APPROVED);
+    }
+
+    public List<User> getApprovedUsersByRole(RoleEnum role) {
+        return userRepository.findByApprovalStatusAndRole(UserStatus.APPROVED, role);
+    }
+
+    public List<User> getRejectedUsers() {
+        return userRepository.findByApprovalStatus(UserStatus.REJECTED);
+    }
+
+    public UserStatus getApprovalStatus(Long userId) {
+        User user = getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getApprovalStatus();
+    }
+
+    public boolean isUserApproved(Long userId) {
+        User user = getUserById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return user.isApproved();
+    }
+
+    public long getPendingUserCount() {
+        return userRepository.countByApprovalStatus(UserStatus.PENDING);
+    }
+
+    public long getApprovedUserCountByRole(RoleEnum role) {
+        return userRepository.countByApprovalStatusAndRole(UserStatus.APPROVED, role);
     }
 }

@@ -19,7 +19,7 @@ import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = "feedback", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"event_id", "participant_id"})
+    @UniqueConstraint(columnNames = {"event_id", "student_id"})
 }, indexes = {
     @Index(name = "idx_feedback_event", columnList = "event_id")
 })
@@ -34,8 +34,8 @@ public class Feedback {
     private Event event;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "participant_id", nullable = false)
-    private User participant;
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
     @Column(nullable = false)
     @Min(1)
@@ -72,12 +72,12 @@ public class Feedback {
         this.event = event;
     }
 
-    public User getParticipant() {
-        return participant;
+    public User getStudent() {
+        return student;
     }
 
-    public void setParticipant(User participant) {
-        this.participant = participant;
+    public void setStudent(User student) {
+        this.student = student;
     }
 
     public Integer getRating() {

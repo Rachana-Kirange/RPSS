@@ -4,7 +4,7 @@
 -- This file is automatically loaded by Spring Boot to populate initial data
 
 INSERT INTO roles (role_name, description, permissions) VALUES
-('PARTICIPANT', 'Participant - Can register for events and give feedback',
+('STUDENT', 'Student - Can register for events and give feedback',
  '{"view_events": true, "register_event": true, "download_pass": true, "feedback": true}')
 ON DUPLICATE KEY UPDATE role_name=role_name;
 

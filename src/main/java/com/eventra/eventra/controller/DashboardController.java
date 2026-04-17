@@ -17,13 +17,15 @@ public class DashboardController {
     private final RegistrationService registrationService;
     private final FeedbackService feedbackService;
     private final ClubService clubService;
+    private final UserService userService;
 
     public DashboardController(EventService eventService, RegistrationService registrationService,
-                               FeedbackService feedbackService, ClubService clubService) {
+                               FeedbackService feedbackService, ClubService clubService, UserService userService) {
         this.eventService = eventService;
         this.registrationService = registrationService;
         this.feedbackService = feedbackService;
         this.clubService = clubService;
+        this.userService = userService;
     }
 
     /**
@@ -37,17 +39,29 @@ public class DashboardController {
             return "redirect:/auth/login";
         }
 
+        // Refresh user from database to get latest approval status
+        user = userService.getUserById(user.getUserId()).orElse(user);
+        
+        // Update session with refreshed user
+        session.setAttribute("loggedInUser", user);
+
         // Verify role is loaded
         if (user.getRole() == null) {
             model.addAttribute("error", "User role not assigned. Please contact administrator.");
             return "error/unauthorized";
         }
 
+        // Check approval status for CLUB_HEAD and ADMIN roles
         RoleEnum role = user.getRole().getRoleName();
+        if ((role == RoleEnum.CLUB_HEAD || role == RoleEnum.ADMIN) && !user.isApproved()) {
+            model.addAttribute("message", "Your account is pending admin approval. Please wait for approval notification.");
+            model.addAttribute("status", user.getApprovalStatus().getDisplayName());
+            return "error/waiting-approval";
+        }
 
         switch (role) {
             case PARTICIPANT:
-                return participantDashboard(user, model);
+                return studentDashboard(user, model);
             case CLUB_HEAD:
                 return clubHeadDashboard(user, model);
             case ADMIN:
@@ -58,17 +72,17 @@ public class DashboardController {
     }
 
     /**
-     * Participant Dashboard
+     * Student Dashboard
      */
-    private String participantDashboard(User participant, Model model) {
+    private String studentDashboard(User student, Model model) {
         try {
-            var registrations = registrationService.getParticipantRegistrations(participant.getUserId());
+            var registrations = registrationService.getStudentRegistrations(student.getUserId());
             model.addAttribute("registrations", registrations);
             model.addAttribute("myRegistrationsCount", registrations.size());
             model.addAttribute("upcomingEvents", eventService.getUpcomingApprovedEvents());
-            return "dashboard/participant-dashboard";
+            return "dashboard/student-dashboard";
         } catch (Exception e) {
-            model.addAttribute("error", "Error loading participant dashboard: " + e.getMessage());
+            model.addAttribute("error", "Error loading student dashboard: " + e.getMessage());
             return "error/not-found";
         }
     }
@@ -126,12 +140,15 @@ public class DashboardController {
                 com.eventra.eventra.enums.EventStatus.COMPLETED
             );
 
+            long pendingUserCount = userService.getPendingUserCount();
+
             var pendingEvents = eventService.getPendingEvents();
             var clubs = clubService.getAllActiveClubs();
 
             model.addAttribute("pendingEventCount", pendingEventCount);
             model.addAttribute("approvedEventCount", approvedEventCount);
             model.addAttribute("completedEventCount", completedEventCount);
+            model.addAttribute("pendingUserCount", pendingUserCount);
             model.addAttribute("pendingEvents", pendingEvents);
             model.addAttribute("clubs", clubs);
             model.addAttribute("totalClubs", clubs.size());

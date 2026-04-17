@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "registrations", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"event_id", "participant_id"})
+    @UniqueConstraint(columnNames = {"event_id", "student_id"})
 }, indexes = {
     @Index(name = "idx_reg_event", columnList = "event_id"),
-    @Index(name = "idx_reg_participant", columnList = "participant_id")
+    @Index(name = "idx_reg_student", columnList = "student_id")
 })
 public class Registration {
 
@@ -24,8 +24,8 @@ public class Registration {
     private Event event;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "participant_id", nullable = false)
-    private User participant;
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime registrationDate;
@@ -44,9 +44,9 @@ public class Registration {
     @Column
     private LocalDateTime paymentDate;
 
-    // Participant details collected during registration
+    // Student details collected during registration
     @Column(length = 100)
-    private String participantFullName;
+    private String studentFullName;
 
     @Column(length = 50)
     private String section;
@@ -58,7 +58,7 @@ public class Registration {
     private String mobileNumber;
 
     @Column(length = 100)
-    private String participantEmail;
+    private String studentEmail;
 
     @OneToOne(mappedBy = "registration", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Pass pass;
@@ -93,12 +93,12 @@ public class Registration {
         this.event = event;
     }
 
-    public User getParticipant() {
-        return participant;
+    public User getStudent() {
+        return student;
     }
 
-    public void setParticipant(User participant) {
-        this.participant = participant;
+    public void setStudent(User student) {
+        this.student = student;
     }
 
     public LocalDateTime getRegistrationDate() {
@@ -163,13 +163,13 @@ public class Registration {
         this.paymentDate = LocalDateTime.now();
     }
 
-    // Participant details getters and setters
-    public String getParticipantFullName() {
-        return participantFullName;
+    // Student details getters and setters
+    public String getStudentFullName() {
+        return studentFullName;
     }
 
-    public void setParticipantFullName(String participantFullName) {
-        this.participantFullName = participantFullName;
+    public void setStudentFullName(String studentFullName) {
+        this.studentFullName = studentFullName;
     }
 
     public String getSection() {
@@ -196,11 +196,11 @@ public class Registration {
         this.mobileNumber = mobileNumber;
     }
 
-    public String getParticipantEmail() {
-        return participantEmail;
+    public String getStudentEmail() {
+        return studentEmail;
     }
 
-    public void setParticipantEmail(String participantEmail) {
-        this.participantEmail = participantEmail;
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
     }
 }

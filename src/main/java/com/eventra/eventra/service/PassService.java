@@ -59,7 +59,7 @@ public class PassService {
     private String generateQRData(Registration registration) {
         return String.format("EVENT:%d|USER:%d|REG:%d|TIME:%d",
                 registration.getEvent().getEventId(),
-                registration.getParticipant().getUserId(),
+                registration.getStudent().getUserId(),
                 registration.getRegistrationId(),
                 System.currentTimeMillis()
         );

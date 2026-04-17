@@ -3,44 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Club | Eventra</title>
+    <title>➕ Add Club | Admin Panel</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .admin-page {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #e94560;
+            border-radius: 10px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-container h1 {
+            text-align: center;
+            color: #16c784;
+            margin: 0 0 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #e0e0e0;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e94560;
+            border-radius: 5px;
+            background: rgba(26, 26, 46, 0.8);
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #16c784;
+            box-shadow: 0 0 10px rgba(22, 199, 132, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .select-option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-submit {
+            flex: 1;
+            background: #16c784;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-submit:hover {
+            background: #12a570;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 199, 132, 0.4);
+        }
+
+        .btn-cancel {
+            flex: 1;
+            background: #e94560;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            background: #d63347;
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            background: rgba(233, 69, 96, 0.2);
+            border: 2px solid #e94560;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .form-container {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
-<body>
-<div class="page-shell">
-    <header class="topbar">
-        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
-        <nav class="nav">
-            <a th:href="@{/admin/clubs}">Manage Clubs</a>
-            <a th:href="@{/dashboard}">Dashboard</a>
-        </nav>
-    </header>
+<body class="admin-page">
 
-    <main class="content-card" style="padding: 36px; margin-top: 16px;">
-        <h2>Add Club</h2>
-        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
-        <form th:action="@{/admin/clubs/add}" method="post" style="display:grid; gap:16px;">
-            <label>
-                Club Name
-                <input type="text" name="clubName" required>
-            </label>
+<div class="form-container">
+    <h1>➕ Create New Club</h1>
+    
+    <div th:if="${error}" class="error-message" th:text="${error}"></div>
+    
+    <form th:action="@{/admin/clubs/add}" method="post">
+        <div class="form-group">
+            <label for="clubName">Club Name *</label>
+            <input type="text" id="clubName" name="clubName" required placeholder="Enter club name">
+        </div>
 
-            <label>
-                Description
-                <textarea name="description" rows="5" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
-            </label>
+        <div class="form-group">
+            <label for="description">Description *</label>
+            <textarea id="description" name="description" required placeholder="Enter club description"></textarea>
+        </div>
 
-            <label>
-                Club Head
-                <select name="clubHeadId" required>
-                    <option value="">Select club head</option>
-                    <option th:each="clubHead : ${clubHeads}" th:value="${clubHead.userId}" th:text="${clubHead.name + ' (' + clubHead.email + ')'}"></option>
-                </select>
-            </label>
+        <div class="form-group">
+            <label for="clubHeadId">Club Head *</label>
+            <select id="clubHeadId" name="clubHeadId" required>
+                <option value="">-- Select Club Head --</option>
+                <option th:each="clubHead : ${clubHeads}" 
+                        class="select-option"
+                        th:value="${clubHead.userId}" 
+                        th:text="${clubHead.name + ' (' + clubHead.email + ')'}">
+                </option>
+            </select>
+        </div>
 
-            <button type="submit">Create Club</button>
-        </form>
-    </main>
+        <div class="button-group">
+            <button type="submit" class="btn-submit">✓ Create Club</button>
+            <a th:href="@{/admin/clubs}" class="btn-cancel">← Cancel</a>
+        </div>
+    </form>
 </div>
+
 </body>
 </html>

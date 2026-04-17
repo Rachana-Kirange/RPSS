@@ -33,12 +33,12 @@
 │                         ROLE                                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │ - roleId (Long)                                                      │
-│ - roleName (ENUM: PARTICIPANT, CLUB_HEAD, ADMIN)                   │
+│ - roleName (ENUM: STUDENT, CLUB_HEAD, ADMIN)                      │
 │ - permissions (String)                                               │
 ├─────────────────────────────────────────────────────────────────────┤
 │ Enum Values:                                                         │
-│ • PARTICIPANT - Register, View Events, Give Feedback                │
-│ • CLUB_HEAD - Create Events, Manage Participants                    │
+│ • STUDENT - Register, View Events, Give Feedback                   │
+│ • CLUB_HEAD - Create Events, Manage Students                        │
 │ • ADMIN - Approve Events, Manage System, Generate Reports           │
 └─────────────────────────────────────────────────────────────────────┘
 
@@ -178,7 +178,7 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │ - reportId (Long)                                                    │
 │ - event (Event) [FOREIGN KEY]                                       │
-│ - totalParticipants (Integer)                                        │
+│ - totalStudents (Integer)                                           │
 │ - totalRevenue (BigDecimal)                                          │
 │ - averageRating (Double)                                             │
 │ - uploadedMediaCount (Integer)                                       │
@@ -213,7 +213,7 @@ START
   │       │  ├──> YES: Event Status = APPROVED
   │       │  │         Event Published
   │       │  │         Notification sent to all users
-  │       │  │         ✓ Event visible to Participants
+  │       │  │         ✓ Event visible to Students
   │       │  │
   │       │  └──> NO: Event Status = REJECTED
   │       │         Club Head notified with reason
@@ -228,9 +228,9 @@ START
 ```
 START
   │
-  ├──> PARTICIPANT: View Event Listing
+  ├──> STUDENT: View Event Listing
   │
-  ├──> PARTICIPANT: Click "Register Event"
+  ├──> STUDENT: Click "Register Event"
   │
   ├──> SYSTEM: Check Event Capacity
   │       ├──> Space Available?
@@ -265,7 +265,7 @@ START
   │       ├── QR pass attachment
   │       └── Entry Instructions
   │
-  ├──> PARTICIPANT: Download Pass (PDF with QR)
+  ├──> STUDENT: Download Pass (PDF with QR)
   │
   └──> END
 ```
@@ -296,27 +296,27 @@ START
   └──> END
 ```
 
-### Activity Diagram 4: Participant Feedback Flow
+### Activity Diagram 4: Student Feedback Flow
 ```
 START
   │
   ├──> EVENT: Completed
   │
-  ├──> PARTICIPANT: Receives Email "Please give Feedback"
+  ├──> STUDENT: Receives Email "Please give Feedback"
   │
-  ├──> PARTICIPANT: Log in → "My Events" → Select Event
+  ├──> STUDENT: Log in → "My Events" → Select Event
   │
-  ├──> PARTICIPANT: Click "Give Feedback"
+  ├──> STUDENT: Click "Give Feedback"
   │
   ├──> SYSTEM: Show Feedback Form
   │       ├── Rating: 1-5 Stars
   │       ├── Comment: Text area
   │       └── Submit button
   │
-  ├──> PARTICIPANT: Submit Feedback
+  ├──> STUDENT: Submit Feedback
   │
   ├──> SYSTEM: Store Feedback in Database
-  │       └── Link to Event & Participant (Unique constraint)
+  │       └── Link to Event & Student (Unique constraint)
   │
   ├──> ADMIN: View All Feedbacks
   │       ├── Dashboard shows avg rating
@@ -344,7 +344,7 @@ START
   │       ├──> 1️⃣ Approve/Reject Events
   │       │
   │       ├──> 2️⃣ View Event Details
-  │       │       └── All participant registrations
+  │       │       └── All student registrations
   │       │           All feedback
   │       │           Media uploads
   │       │
@@ -394,14 +394,14 @@ CREATE TABLE users (
 -- ============================================
 CREATE TABLE roles (
     role_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    role_name ENUM('PARTICIPANT', 'CLUB_HEAD', 'ADMIN') UNIQUE NOT NULL,
+    role_name ENUM('STUDENT', 'CLUB_HEAD', 'ADMIN') UNIQUE NOT NULL,
     description VARCHAR(255),
     permissions JSON
 );
 
 -- Insert predefined roles
 INSERT INTO roles (role_name, description) VALUES
-('PARTICIPANT', 'Can register for events and give feedback'),
+('STUDENT', 'Can register for events and give feedback'),
 ('CLUB_HEAD', 'Can create and manage club events'),
 ('ADMIN', 'Full system access and approvals');
 
@@ -526,7 +526,7 @@ CREATE TABLE media (
 CREATE TABLE reports (
     report_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     event_id BIGINT NOT NULL,
-    total_participants INT,
+    total_students INT,
     total_revenue DECIMAL(12, 2),
     average_rating DECIMAL(3, 2),
     uploaded_media_count INT,
@@ -616,7 +616,7 @@ eventra/
 │   │   │   ├── event-details.html
 │   │   │   └── event-approval.html
 │   │   ├── dashboard/
-│   │   │   ├── participant-dashboard.html
+│   │   │   ├── student-dashboard.html
 │   │   │   ├── club-head-dashboard.html
 │   │   │   ├── admin-dashboard.html
 │   │   │   └── analytics.html
@@ -783,12 +783,12 @@ class EventControllerIntegrationTest {
         Event freeEvent = createEvent("Free Event", false, null);
 
         mockMvc.perform(post("/registration/register/{eventId}", freeEvent.getEventId())
-                .sessionAttr("user", participant))
+                .sessionAttr("user", student))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrlPattern("/registration/*/download"));
 
         // Verify registration created
-        Registration reg = registrationRepository.findByEventAndParticipant(freeEvent, participant);
+        Registration reg = registrationRepository.findByEventAndStudent(freeEvent, student);
         assertNotNull(reg);
         assertEquals("CONFIRMED", reg.getStatus());
     }
@@ -799,12 +799,12 @@ class EventControllerIntegrationTest {
         Event paidEvent = createEvent("Workshop", true, 500.0);
 
         mockMvc.perform(post("/registration/register/{eventId}", paidEvent.getEventId())
-                .sessionAttr("user", participant))
+                .sessionAttr("user", student))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/payment"));  // Redirect to payment
 
         // Verify registration with PENDING payment
-        Registration reg = registrationRepository.findByEventAndParticipant(paidEvent, participant);
+        Registration reg = registrationRepository.findByEventAndStudent(paidEvent, student);
         assertEquals("PENDING", reg.getPaymentStatus());
     }
 
@@ -812,15 +812,15 @@ class EventControllerIntegrationTest {
     @Test
     void testSubmitFeedback() throws Exception {
         Event event = createEvent("Past Event", false, null);
-        Registration registrations = registerUser(event, participant);
+        Registration registrations = registerUser(event, student);
 
         mockMvc.perform(post("/feedback/submit/{eventId}", event.getEventId())
                 .param("rating", "5")
                 .param("comment", "Excellent event!")
-                .sessionAttr("user", participant))
+                .sessionAttr("user", student))
             .andExpect(status().is3xxRedirection());
 
-        Feedback fb = feedbackRepository.findByEventAndParticipant(event, participant);
+        Feedback fb = feedbackRepository.findByEventAndStudent(event, student);
         assertEquals(5, fb.getRating());
     }
 }
@@ -971,7 +971,7 @@ mvn surefire-report:report
                         ┌──────┼──────┐
                         │      │      │
           ┌─────────────▼─┐ ┌──▼────┐ ┌─▼──────────┐
-          │ PARTICIPANT   │ │CLUB   │ │ADMIN       │
+          │ STUDENT   │ │CLUB   │ │ADMIN       │
           │ Dashboard     │ │HEAD   │ │Dashboard   │
           │ - View Events │ │      │ │ - Approve  │
           │ - Register    │ │Dashboard  │ - Manage  │
@@ -1003,7 +1003,7 @@ mvn surefire-report:report
 A: JPA/Hibernate requires a primary key for database mapping. It's auto-generated and doesn't conflict with role-based access.
 
 **Q: What if payment fails?**
-A: `paymentStatus` stays PENDING. Participant can retry from dashboard.
+A: `paymentStatus` stays PENDING. Student can retry from dashboard.
 
 **Q: Can a user have multiple roles?**
 A: Currently NO (One-to-One User:Role). Can be extended if needed.

@@ -3,8 +3,8 @@
 ## 📋 Project Overview
 
 This is a comprehensive **Role-Based Event Management System** for RPSS Committee with three main roles:
-- **Participant**: Register for events, give feedback, download passes
-- **Club Head**: Create events, manage participants, upload media
+- **Student**: Register for events, give feedback, download passes
+- **Club Head**: Create events, manage students, upload media
 - **Admin**: Approve/reject events, manage users/clubs, generate reports
 
 ---
@@ -46,7 +46,7 @@ USER (1:1) ← ROLE
 EVENT (N:1) → CLUB
 EVENT (N:1) → USER (creator, approver)
 REGISTRATION (N:1) → EVENT  
-REGISTRATION (N:1) → USER (participant)
+REGISTRATION (N:1) → USER (student)
 REGISTRATION (1:1) → PASS
 FEEDBACK (N:1) → EVENT
 FEEDBACK (N:1) → USER 
@@ -57,7 +57,7 @@ REPORT (1:1) → EVENT
 
 ### Key Tables
 - **users**: User accounts with roles
-- **roles**: PARTICIPANT, CLUB_HEAD, ADMIN
+- **roles**: STUDENT, CLUB_HEAD, ADMIN
 - **clubs**: RPSS clubs (7 pre-configured)
 - **events**: Event lifecycle tracking
 - **registrations**: Event registrations with payment tracking
@@ -118,9 +118,9 @@ mvn spring-boot:run
 - Register/Login as ADMIN
 - Go to: /admin/events/pending
 - Click "Approve"
-- Event becomes APPROVED and visible to participants
+- Event becomes APPROVED and visible to students
 
-**Step 4: Participant Registers**
+**Step 4: Student Registers**
 - Go to: /events
 - Click event → Click "Register"
 - QR pass auto-generated
@@ -141,7 +141,7 @@ mvn spring-boot:run
 
 **Verify Role-Based Access:**
 
-| Page | Participant | Club Head | Admin | Anonymous |
+| Page | Student | Club Head | Admin | Anonymous |
 |------|-------------|-----------|-------|-----------|
 | /dashboard | ✅ | ✅ | ✅ | ❌ |
 | /events | ✅ | ✅ | ✅ | ✅ |
@@ -160,7 +160,7 @@ mvn spring-boot:run
    - Expected: Registration CONFIRMED, Pass GENERATED
 
 2. **Duplicate Registration**
-   - Same participant registers twice
+   - Same student registers twice
    - Expected: Error "already registered"
 
 3. **Full Event**
@@ -194,12 +194,12 @@ EVENT MANAGEMENT
 ✓ Event starts as PENDING
 ✓ Admin approves event
 ✓ Event becomes APPROVED
-✓ Approved events visible to participants
+✓ Approved events visible to students
 ✓ Admin rejects with reason
 ✓ Event can be cancelled
 
 REGISTRATION & PASSES
-✓ Participant registers for event
+✓ Student registers for event
 ✓ QR code generated automatically
 ✓ Pass can be scanned
 ✓ Cannot register twice
@@ -280,7 +280,7 @@ POST /admin/reports/{id}/generate   Generate report
 
 ## 🌟 Features Included
 
-✅ Role-based dashboards (Participant, Club Head, Admin)
+✅ Role-based dashboards (Student, Club Head, Admin)
 ✅ Event lifecycle (PENDING → APPROVED → COMPLETED)
 ✅ Automatic QR code generation for passes
 ✅ Event capacity management
@@ -352,10 +352,10 @@ Check:
 3. **Create Club**: /admin/clubs/add
 4. **Add Club Head**: /admin/users/add → Role: CLUB_HEAD
 5. **Assign Club Head to Club**: /admin/clubs/edit
-6. **Register Participant**: /auth/register → Role: PARTICIPANT
+6. **Register Student**: /auth/register → Role: STUDENT
 7. **Create Event**: Login as Club Head → /events/create
 8. **Approve Event**: Login as Admin → /admin/events/pending → Approve
-9. **Register Participant**: Login as Participant → /events → Register
+9. **Register Student**: Login as Student → /events → Register
 10. **Submit Feedback**: /feedback/event/{eventId}
 11. **Generate Report**: /admin/reports/{eventId}/generate
 

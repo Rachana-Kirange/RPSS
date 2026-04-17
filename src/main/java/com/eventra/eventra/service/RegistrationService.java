@@ -30,16 +30,16 @@ public class RegistrationService {
     }
 
     /**
-     * Register participant for event
+     * Register student for event
      */
-    public Registration registerForEvent(Long eventId, User participant) {
-        log.info(String.format("Registering user %s for event %d", participant.getEmail(), eventId));
+    public Registration registerForEvent(Long eventId, User student) {
+        log.info(String.format("Registering user %s for event %d", student.getEmail(), eventId));
 
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
 
         // Check if user already registered
-        if (registrationRepository.existsByEventAndParticipant(event, participant)) {
+        if (registrationRepository.existsByEventAndStudent(event, student)) {
             throw new IllegalArgumentException("User already registered for this event");
         }
 
@@ -50,7 +50,7 @@ public class RegistrationService {
 
         Registration registration = new Registration();
         registration.setEvent(event);
-        registration.setParticipant(participant);
+        registration.setStudent(student);
         registration.setStatus(RegistrationStatus.CONFIRMED);
 
         // Automatically set payment status
@@ -64,16 +64,16 @@ public class RegistrationService {
     }
 
     /**
-     * Register participant with detailed information
+     * Register student with detailed information
      */
-    public Registration registerForEventWithDetails(Long eventId, User participant, EventRegistrationDTO dto) {
-        log.info(String.format("Registering user %s for event %d with details", participant.getEmail(), eventId));
+    public Registration registerForEventWithDetails(Long eventId, User student, EventRegistrationDTO dto) {
+        log.info(String.format("Registering user %s for event %d with details", student.getEmail(), eventId));
 
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new RuntimeException("Event not found"));
 
         // Check if user already registered
-        if (registrationRepository.existsByEventAndParticipant(event, participant)) {
+        if (registrationRepository.existsByEventAndStudent(event, student)) {
             throw new IllegalArgumentException("User already registered for this event");
         }
 
@@ -84,15 +84,15 @@ public class RegistrationService {
 
         Registration registration = new Registration();
         registration.setEvent(event);
-        registration.setParticipant(participant);
+        registration.setStudent(student);
         registration.setStatus(RegistrationStatus.CONFIRMED);
 
-        // Set participant details
-        registration.setParticipantFullName(dto.getParticipantFullName());
+        // Set student details
+        registration.setStudentFullName(dto.getStudentFullName());
         registration.setSection(dto.getSection());
         registration.setRollNumber(dto.getRollNumber());
         registration.setMobileNumber(dto.getMobileNumber());
-        registration.setParticipantEmail(dto.getParticipantEmail());
+        registration.setStudentEmail(dto.getStudentEmail());
 
         // Automatically set payment status
         if (!event.getRequiresPayment()) {
@@ -159,10 +159,10 @@ public class RegistrationService {
     }
 
     /**
-     * Get participant's registrations
+     * Get student's registrations
      */
-    public List<Registration> getParticipantRegistrations(Long userId) {
-        return registrationRepository.findByParticipantUserId(userId);
+    public List<Registration> getStudentRegistrations(Long userId) {
+        return registrationRepository.findByStudentUserId(userId);
     }
 
     /**
@@ -185,7 +185,7 @@ public class RegistrationService {
     public boolean isUserRegistered(Long eventId, Long userId) {
         List<Registration> registrations = registrationRepository.findByEventEventId(eventId);
         return registrations.stream()
-            .anyMatch(reg -> reg.getParticipant().getUserId().equals(userId) &&
+            .anyMatch(reg -> reg.getStudent().getUserId().equals(userId) &&
                            reg.getStatus() == RegistrationStatus.CONFIRMED);
     }
 
@@ -195,7 +195,7 @@ public class RegistrationService {
     public Optional<Registration> getUserEventRegistration(Long eventId, Long userId) {
         List<Registration> registrations = registrationRepository.findByEventEventId(eventId);
         return registrations.stream()
-            .filter(reg -> reg.getParticipant().getUserId().equals(userId))
+            .filter(reg -> reg.getStudent().getUserId().equals(userId))
             .findFirst();
     }
 

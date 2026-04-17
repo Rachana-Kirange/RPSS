@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.logging.Logger;
 
 /**
- * Service for sending notifications to participants
+ * Service for sending notifications to students
  */
 @Service
 public class NotificationService {
@@ -19,22 +19,21 @@ public class NotificationService {
      */
     public void sendRegistrationConfirmation(Registration registration) {
         Event event = registration.getEvent();
-        String participantEmail = registration.getParticipantEmail();
+        String studentEmail = registration.getStudentEmail();
         String mobileNumber = registration.getMobileNumber();
 
         try {
             // Send Email
-            sendRegistrationEmail(registration, event, participantEmail);
+            sendRegistrationEmail(registration, event, studentEmail);
 
             // Send SMS
             if (mobileNumber != null && !mobileNumber.isEmpty()) {
                 sendRegistrationSMS(registration, event, mobileNumber);
             }
 
-            log.info(String.format("Notification sent to %s for event registration", participantEmail));
+            log.info(String.format("Notification sent to %s for event registration", studentEmail));
         } catch (Exception e) {
-            log.severe("Error sending notification: " + e.getMessage());
-            e.printStackTrace();
+            log.severe(String.format("Error sending notification: %s", e.getMessage()));
         }
     }
 
@@ -61,7 +60,7 @@ public class NotificationService {
                 "Please download your pass from the dashboard.\n\n" +
                 "Thank you for registering!\n\n" +
                 "Regards,\nEventra Event Management System",
-                registration.getParticipantFullName(),
+                registration.getStudentFullName(),
                 event.getTitle(),
                 event.getTitle(),
                 eventDate,
@@ -81,7 +80,7 @@ public class NotificationService {
             System.out.println("BODY:\n" + body);
 
         } catch (Exception e) {
-            log.severe("Error sending email: " + e.getMessage());
+            log.severe(String.format("Error sending email: %s", e.getMessage()));
         }
     }
 
@@ -92,7 +91,7 @@ public class NotificationService {
         try {
             String message = String.format(
                 "Hi %s! You are registered for %s on %s at %s. Registration ID: %d. Ref: Eventra",
-                registration.getParticipantFullName(),
+                registration.getStudentFullName(),
                 event.getTitle(),
                 event.getEventDate().toLocalDate(),
                 event.getVenue(),
@@ -107,7 +106,7 @@ public class NotificationService {
             System.out.println("MESSAGE: " + message);
 
         } catch (Exception e) {
-            log.severe("Error sending SMS: " + e.getMessage());
+            log.severe(String.format("Error sending SMS: %s", e.getMessage()));
         }
     }
 }

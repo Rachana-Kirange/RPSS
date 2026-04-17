@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Audit Logs | Admin</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .audit-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 30px;
+        }
+        .back-button {
+            color: #e94560;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .audit-table th, .audit-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .audit-table th {
+            background: #0f3460;
+            color: #16c784;
+        }
+        .audit-table tr:hover {
+            background: #1a1a2e;
+        }
+        .success { color: #16c784; }
+        .failure { color: #e94560; }
+    </style>
+</head>
+<body>
+<div class="audit-container">
+    <a href="/admin/users" class="back-button">← Back to Users</a>
+    
+    <h2>Audit Logs for User <span th:text="${userId}"></span></h2>
+    
+    <table class="audit-table" th:if="${!auditLogs.isEmpty()}">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>IP Address</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="log : ${auditLogs}">
+                <td th:text="${#dates.format(log.createdAt, 'dd-MMM-yyyy HH:mm:ss')}"></td>
+                <td th:text="${log.action}"></td>
+                <td th:text="${log.details}"></td>
+                <td th:text="${log.ipAddress}"></td>
+                <td th:class="${log.status == 'SUCCESS' ? 'success' : 'failure'}" th:text="${log.status}"></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <p th:if="${auditLogs.isEmpty()}" style="margin-top: 20px; color: #999;">No audit logs found for this user.</p>
+</div>
+</body>
+</html>
