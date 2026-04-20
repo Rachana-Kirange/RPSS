@@ -2,9 +2,12 @@ package com.eventra.eventra.config;
 
 import com.eventra.eventra.model.Role;
 import com.eventra.eventra.model.Club;
+import com.eventra.eventra.model.User;
 import com.eventra.eventra.enums.RoleEnum;
+import com.eventra.eventra.enums.UserStatus;
 import com.eventra.eventra.repository.RoleRepository;
 import com.eventra.eventra.repository.ClubRepository;
+import com.eventra.eventra.repository.UserRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -102,6 +105,36 @@ public class DataInitializationConfig implements WebMvcConfigurer {
             }
 
             log.info("Club initialization completed");
+        };
+    }
+
+    @Bean
+    public ApplicationRunner initializeDefaultAdmin(UserRepository userRepository, RoleRepository roleRepository) {
+        return args -> {
+            final String adminEmail = "mca25.rachanakirange@asmedu.org";
+
+            if (userRepository.findByEmail(adminEmail).isPresent()) {
+                log.info("Default admin already exists");
+                return;
+            }
+
+            Role adminRole = roleRepository.findByRoleName(RoleEnum.ADMIN)
+                .orElseThrow(() -> new IllegalStateException("ADMIN role must exist before creating the default admin"));
+
+            User adminUser = new User();
+            adminUser.setName("Rachana Kirange");
+            adminUser.setEmail(adminEmail);
+            adminUser.setRole(adminRole);
+            adminUser.setIsActive(true);
+            adminUser.setApprovalStatus(UserStatus.APPROVED);
+            adminUser.encryptPassword("Rachana@2907k");
+
+            User savedAdmin = userRepository.save(adminUser);
+            savedAdmin.setApprovedBy(savedAdmin);
+            savedAdmin.setLastRoleChangedBy(savedAdmin);
+            userRepository.save(savedAdmin);
+
+            log.info("Created default admin user: " + adminEmail);
         };
     }
 }
