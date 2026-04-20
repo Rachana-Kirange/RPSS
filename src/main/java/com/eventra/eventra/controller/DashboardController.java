@@ -1,13 +1,18 @@
 package com.eventra.eventra.controller;
 
-import com.eventra.eventra.model.User;
-import com.eventra.eventra.enums.RoleEnum;
-import com.eventra.eventra.service.*;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.eventra.eventra.enums.RoleEnum;
+import com.eventra.eventra.model.User;
+import com.eventra.eventra.service.ClubService;
+import com.eventra.eventra.service.EventService;
+import com.eventra.eventra.service.RegistrationService;
+import com.eventra.eventra.service.UserService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/dashboard")
@@ -15,15 +20,13 @@ public class DashboardController {
 
     private final EventService eventService;
     private final RegistrationService registrationService;
-    private final FeedbackService feedbackService;
     private final ClubService clubService;
     private final UserService userService;
 
     public DashboardController(EventService eventService, RegistrationService registrationService,
-                               FeedbackService feedbackService, ClubService clubService, UserService userService) {
+                               ClubService clubService, UserService userService) {
         this.eventService = eventService;
         this.registrationService = registrationService;
-        this.feedbackService = feedbackService;
         this.clubService = clubService;
         this.userService = userService;
     }
@@ -65,7 +68,7 @@ public class DashboardController {
             case CLUB_HEAD:
                 return clubHeadDashboard(user, model);
             case ADMIN:
-                return adminDashboard(user, model);
+                return adminDashboard(model);
             default:
                 return "redirect:/auth/login";
         }
@@ -128,7 +131,7 @@ public class DashboardController {
     /**
      * Admin Dashboard
      */
-    private String adminDashboard(User admin, Model model) {
+    private String adminDashboard(Model model) {
         try {
             long pendingEventCount = eventService.getEventCountByStatus(
                 com.eventra.eventra.enums.EventStatus.PENDING
