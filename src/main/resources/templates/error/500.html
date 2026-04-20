@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Server Error | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/auth/login}">Login</a>
+        </nav>
+    </header>
+    <main class="content-card" style="padding: 36px; margin-top: 16px;">
+        <h2 style="color: var(--danger, #e74c3c);">Internal Server Error (500)</h2>
+        <p>Something went wrong on our server. This is often caused by a temporary issue or a database connection problem.</p>
+        
+        <div th:if="${error}" style="background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 16px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin-bottom: 8px;"><strong>Error Details:</strong></p>
+            <code style="display: block; word-break: break-all;" th:text="${error}">Error message will appear here</code>
+            <p style="margin-top: 8px; font-size: 0.9em;" th:if="${errorClass}">Type: <span th:text="${errorClass}">ExceptionClass</span></p>
+        </div>
+
+        <p class="muted">If you are the developer, please check the console logs for the full stack trace.</p>
+        
+        <div class="quick-links" style="margin-top: 24px;">
+            <a class="button-link primary" th:href="@{/}">Try Going Home</a>
+            <a class="button-link" th:href="@{/contact}">Report Issue</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>

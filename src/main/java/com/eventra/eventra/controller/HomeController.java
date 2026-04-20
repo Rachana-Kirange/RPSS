@@ -19,9 +19,17 @@ public class HomeController {
      */
     @GetMapping("/")
     public String home(Model model) {
-        var upcomingEvents = eventService.getUpcomingApprovedEvents();
-        model.addAttribute("upcomingEvents", upcomingEvents);
-        model.addAttribute("eventCount", upcomingEvents.size());
+        try {
+            var upcomingEvents = eventService.getUpcomingApprovedEvents();
+            model.addAttribute("upcomingEvents", upcomingEvents != null ? upcomingEvents : java.util.Collections.emptyList());
+            model.addAttribute("eventCount", upcomingEvents != null ? upcomingEvents.size() : 0);
+        } catch (Exception e) {
+            // Log the error but don't crash the landing page
+            System.err.println("DATABASE ERROR: " + e.getMessage());
+            model.addAttribute("upcomingEvents", java.util.Collections.emptyList());
+            model.addAttribute("eventCount", 0);
+            model.addAttribute("dbError", "Check your database connection: " + e.getMessage());
+        }
 
         return "home/index";
     }
