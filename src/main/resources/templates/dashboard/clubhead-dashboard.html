@@ -47,38 +47,10 @@
         </section>
 
         <section class="list-card">
-            <h3>Club Event Pipeline</h3>
-            <div th:if="${#lists.isEmpty(events)}" class="empty-state">
-                No events have been created for this club yet.
-            </div>
-            <div th:unless="${#lists.isEmpty(events)}" class="event-list">
-                <div class="event-item" th:each="event : ${events}">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="flex:1;">
-                            <h4 th:text="${event.title}">Event title</h4>
-                            <div class="event-meta">
-                                <strong>Status:</strong> <span th:text="${event.status}" th:class="'badge ' + ${event.statusBadgeClass}">PENDING</span><br>
-                                <strong>Date:</strong> <span th:text="${#temporals.format(event.eventDate, 'MMM dd, yyyy HH:mm')}">date</span><br>
-                                <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
-                                <strong>Registrations:</strong> <span th:text="${event.registrationCount} + ' / ' + ${event.maxCapacity}">0 / 100</span><br>
-                                <div th:if="${event.activityProposal}" style="margin-top:8px;">
-                                    <strong>Proposal:</strong> <span th:text="${event.activityProposal.substring(0, 50) + '...'}">proposal</span>
-                                </div>
-                                <div style="margin-top:8px;">
-                                    <strong>QR Required:</strong> <span th:text="${event.requiresQR ? 'Yes' : 'No'}">No</span> |
-                                    <strong>Payment:</strong> <span th:text="${event.requiresPayment ? 'Yes' : 'No'}">No</span>
-                                    <span th:if="${event.requiresPayment}" th:text="' (₹' + ${event.paymentAmount} + ')'"> (₹0)</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="action-buttons" style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">
-                            <a th:href="@{/events/{id}(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">View Details</a>
-                            <a th:href="@{/events/{id}/participants(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Participants</a>
-                            <a th:href="@{/events/{id}/media(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Media</a>
-                            <a th:href="@{/events/{id}/report(id=${event.eventId})}" class="button-link small" style="font-size:0.85rem; padding:6px 12px;">Report</a>
-                        </div>
-                    </div>
-                </div>
+            <h3>All Events</h3>
+            <p class="muted" style="font-size:0.9rem;">Open a complete list of all events you created. Use Show Details to view registered user data for each event.</p>
+            <div style="margin-top:14px;">
+                <a th:href="@{/clubhead/events}" class="button-link primary">Open All Events</a>
             </div>
         </section>
 
@@ -86,7 +58,19 @@
             <h3>Available Events to Register</h3>
             <p class="muted" style="font-size:0.9rem;">As a club head, you can also register for other club events.</p>
             <div id="availableEventsContainer" style="margin-top:12px;">
-                <p style="color: var(--shadow); font-size:0.9rem;">Loading events...</p>
+                <div th:if="${#lists.isEmpty(approvedEventsList)}" style="color: var(--shadow); font-size:0.9rem;">
+                    No approved events available right now.
+                </div>
+                <div th:unless="${#lists.isEmpty(approvedEventsList)}" class="event-list">
+                    <div class="event-item" th:each="event : ${approvedEventsList}">
+                        <h4 th:text="${event.title}">Event</h4>
+                        <div class="event-meta">
+                            <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                            <strong>Date:</strong> <span th:text="${#temporals.format(event.eventDate, 'MMM dd, yyyy HH:mm')}">date</span><br>
+                            <strong>Seats:</strong> <span th:text="${event.availableSeats}">0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -103,14 +87,8 @@
         .action-buttons a:hover {
             background-color: var(--primary-dark);
         }
-    </style>
 
-    <script>
-        const availableEventsContainer = document.getElementById('availableEventsContainer');
-        if (availableEventsContainer) {
-            availableEventsContainer.innerHTML = '<p style="color: var(--shadow); font-size:0.9rem;">Use the Events page to browse and register for open events.</p>';
-        }
-    </script>
+    </style>
 </div>
 </body>
 </html>

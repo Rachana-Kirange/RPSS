@@ -10,6 +10,7 @@ import com.eventra.eventra.service.ClubService;
 import com.eventra.eventra.service.MediaService;
 import com.eventra.eventra.enums.EventStatus;
 import com.eventra.eventra.enums.MediaFileType;
+import com.eventra.eventra.enums.RoleEnum;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -59,9 +60,10 @@ public class ClubHeadController {
      * Verify user is an approved club head
      */
     private boolean isApprovedClubHead(User user) {
-        return user != null && 
-               user.getRole().getRoleName().name().equals("CLUB_HEAD") && 
-               user.isApproved();
+        return user != null
+            && user.getRole() != null
+            && user.getRole().getRoleName() == RoleEnum.CLUB_HEAD
+            && user.isApproved();
     }
 
     /**
@@ -105,7 +107,7 @@ public class ClubHeadController {
             model.addAttribute("totalRegistrations", totalRegistrations);
             model.addAttribute("events", events);
 
-            return "clubhead/clubhead-dashboard";
+            return "dashboard/clubhead-dashboard";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading club head dashboard: " + e.getMessage());
             return "error/not-found";
@@ -132,7 +134,7 @@ public class ClubHeadController {
 
         model.addAttribute("club", club.get());
         model.addAttribute("eventCreateDTO", new EventCreateDTO());
-        return "clubhead/create-event";
+        return "event/create-event";
     }
 
     /**
@@ -148,24 +150,34 @@ public class ClubHeadController {
             return "redirect:/dashboard";
         }
 
-        Optional<Club> club = clubService.getClubByClubHead(user.getUserId());
-        if (club.isEmpty()) {
-            model.addAttribute("error", "You are not assigned to any club");
-            return "error/not-assigned";
-        }
-
-        if (result.hasErrors()) {
-            model.addAttribute("club", club.get());
-            return "clubhead/create-event";
-        }
-
         try {
+            Optional<Club> club = clubService.getClubByClubHead(user.getUserId());
+            if (club.isEmpty()) {
+                model.addAttribute("error", "You are not assigned to any club");
+                return "error/not-assigned";
+            }
+
+            if (result.hasErrors()) {
+                model.addAttribute("club", club.get());
+                return "event/create-event";
+            }
+
             LocalDateTime eventDateTime = LocalDateTime.parse(dto.getEventDateTime(), dateTimeFormatter);
+            LocalDateTime endDateTime = dto.getEndDateTime() != null && !dto.getEndDateTime().isBlank()
+                ? LocalDateTime.parse(dto.getEndDateTime(), dateTimeFormatter)
+                : eventDateTime;
+
+            if (endDateTime.isBefore(eventDateTime)) {
+                model.addAttribute("error", "End date/time cannot be before start date/time");
+                model.addAttribute("club", club.get());
+                return "event/create-event";
+            }
 
             Event event = eventService.createEvent(
                 dto.getTitle(),
                 dto.getDescription(),
                 eventDateTime,
+                endDateTime,
                 dto.getVenue(),
                 dto.getMaxCapacity(),
                 club.get().getClubId(),
@@ -181,9 +193,16 @@ public class ClubHeadController {
             model.addAttribute("success", "Event created successfully! It has been sent for admin approval.");
             return "redirect:/clubhead/dashboard";
         } catch (Exception e) {
-            model.addAttribute("error", "Error creating event: " + e.getMessage());
-            model.addAttribute("club", club.get());
-            return "clubhead/create-event";
+            log.severe("Error creating event for club head " + user.getEmail() + ": " + e.getMessage());
+            e.printStackTrace();
+            String message = e.getMessage();
+            if (message != null && (message.contains("Unknown column") || message.contains("end_date"))) {
+                message = "Database schema is not updated for new event fields. Restart the application to apply schema changes.";
+            }
+            model.addAttribute("error", "Error creating event: " + message);
+            model.addAttribute("club", clubService.getClubByClubHead(user.getUserId()).orElse(null));
+            model.addAttribute("eventCreateDTO", dto);
+            return "event/create-event";
         }
     }
 
@@ -191,7 +210,7 @@ public class ClubHeadController {
      * Manage Participants for a specific event
      * View all registered participants and their details
      */
-    @GetMapping("/events/{eventId}/participants")
+    @GetMapping({"/events/{eventId}/participants", "/events/{eventId}/registered-users"})
     public String manageParticipants(@PathVariable Long eventId, HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggedInUser");
 
@@ -215,7 +234,7 @@ public class ClubHeadController {
         model.addAttribute("registrations", registrations);
         model.addAttribute("participantCount", registrations.size());
 
-        return "clubhead/manage-participants";
+        return "event/manage-participants";
     }
 
     /**
@@ -241,9 +260,13 @@ public class ClubHeadController {
             return "redirect:/clubhead/dashboard";
         }
 
+        if (event.get().getStatus() != EventStatus.COMPLETED) {
+            return "redirect:/clubhead/events/" + eventId;
+        }
+
         model.addAttribute("event", event.get());
         model.addAttribute("media", event.get().getMedia());
-        return "clubhead/upload-media";
+        return "event/upload-media";
     }
 
     /**
@@ -253,7 +276,7 @@ public class ClubHeadController {
     @PostMapping("/events/{eventId}/media/upload")
     public String uploadMedia(@PathVariable Long eventId,
                              @RequestParam("files") MultipartFile[] files,
-                             @RequestParam(defaultValue = "PHOTO") MediaFileType mediaType,
+                             @RequestParam(defaultValue = "IMAGE") MediaFileType mediaType,
                              @RequestParam(required = false) String description,
                              HttpSession session, Model model) {
         User user = (User) session.getAttribute("loggedInUser");
@@ -273,6 +296,10 @@ public class ClubHeadController {
             return "redirect:/clubhead/dashboard";
         }
 
+        if (event.get().getStatus() != EventStatus.COMPLETED) {
+            return "redirect:/clubhead/events/" + eventId;
+        }
+
         try {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
@@ -285,7 +312,7 @@ public class ClubHeadController {
             model.addAttribute("error", "Error uploading media: " + e.getMessage());
             model.addAttribute("event", event.get());
             model.addAttribute("media", event.get().getMedia());
-            return "clubhead/upload-media";
+            return "event/upload-media";
         }
     }
 
@@ -312,13 +339,17 @@ public class ClubHeadController {
             return "redirect:/clubhead/dashboard";
         }
 
+        if (event.get().getStatus() != EventStatus.COMPLETED) {
+            return "redirect:/clubhead/events/" + eventId;
+        }
+
         var registrations = registrationService.getEventRegistrations(eventId);
         model.addAttribute("event", event.get());
         model.addAttribute("eventReport", event.get().getEventReport());
         model.addAttribute("registrationCount", registrations.size());
         model.addAttribute("feedbackCount", event.get().getFeedbacks().size());
 
-        return "clubhead/event-report";
+        return "event/view-report";
     }
 
     /**
@@ -346,6 +377,10 @@ public class ClubHeadController {
             return "redirect:/clubhead/dashboard";
         }
 
+        if (event.get().getStatus() != EventStatus.COMPLETED) {
+            return "redirect:/clubhead/events/" + eventId;
+        }
+
         try {
             eventService.saveEventReport(eventId, report);
             log.info(String.format("Event report saved for event: %d by club head: %s", eventId, user.getEmail()));
@@ -353,7 +388,7 @@ public class ClubHeadController {
         } catch (Exception e) {
             model.addAttribute("error", "Error saving report: " + e.getMessage());
             model.addAttribute("event", event.get());
-            return "clubhead/event-report";
+            return "event/view-report";
         }
     }
 
@@ -375,7 +410,8 @@ public class ClubHeadController {
 
             model.addAttribute("club", club.orElse(null));
             model.addAttribute("events", events);
-            return "clubhead/all-events";
+            model.addAttribute("totalEvents", events.size());
+            return "event/clubhead-events-list";
         } catch (Exception e) {
             model.addAttribute("error", "Error loading events: " + e.getMessage());
             return "error/not-found";
@@ -407,9 +443,11 @@ public class ClubHeadController {
 
         var registrations = registrationService.getEventRegistrations(eventId);
         model.addAttribute("event", event.get());
+        model.addAttribute("registrations", registrations);
+        model.addAttribute("participantCount", registrations.size());
         model.addAttribute("registrationCount", registrations.size());
         model.addAttribute("availableSeats", event.get().getMaxCapacity() - registrations.size());
 
-        return "clubhead/event-details";
+        return "event/clubhead-event-details";
     }
 }

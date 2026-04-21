@@ -73,7 +73,11 @@ public class ClubService {
      * Get club by club head
      */
     public Optional<Club> getClubByClubHead(Long userId) {
-        return clubRepository.findByClubHeadUserId(userId);
+        List<Club> assignedClubs = clubRepository.findAllByClubHeadUserId(userId);
+        if (assignedClubs.size() > 1) {
+            log.warning(String.format("Multiple clubs are assigned to user %d. Using the first assignment.", userId));
+        }
+        return assignedClubs.stream().findFirst();
     }
 
     /**

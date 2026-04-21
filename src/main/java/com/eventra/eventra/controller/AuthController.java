@@ -4,6 +4,7 @@ import com.eventra.eventra.model.User;
 import com.eventra.eventra.dto.UserLoginDTO;
 import com.eventra.eventra.dto.UserRegistrationDTO;
 import com.eventra.eventra.enums.RoleEnum;
+import com.eventra.eventra.enums.UserStatus;
 import com.eventra.eventra.service.UserService;
 import com.eventra.eventra.service.AuditLogService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -98,6 +99,29 @@ public class AuthController {
                     model.addAttribute("error", "Your account has been deactivated. Please contact the administrator.");
                     auditLogService.logFailed(authenticatedUser, "LOGIN", "Login attempted on deactivated account", 
                         "Login failed - account inactive");
+                    return "auth/login";
+                }
+
+                // Check approval workflow status before creating session
+                UserStatus approvalStatus = authenticatedUser.getApprovalStatus();
+                if (approvalStatus == UserStatus.PENDING && authenticatedUser.getRole().getRoleName() == RoleEnum.CLUB_HEAD) {
+                    model.addAttribute("error", "Your CLUB_HEAD account is pending admin approval. Please try again after approval.");
+                    auditLogService.logFailed(authenticatedUser, "LOGIN", "Login attempted while approval pending",
+                        "Login blocked - approval pending");
+                    return "auth/login";
+                }
+
+                if (approvalStatus == UserStatus.REJECTED) {
+                    model.addAttribute("error", "Your account registration was rejected. Please contact admin support.");
+                    auditLogService.logFailed(authenticatedUser, "LOGIN", "Login attempted on rejected account",
+                        "Login blocked - account rejected");
+                    return "auth/login";
+                }
+
+                if (approvalStatus == UserStatus.SUSPENDED) {
+                    model.addAttribute("error", "Your account is suspended. Please contact the administrator.");
+                    auditLogService.logFailed(authenticatedUser, "LOGIN", "Login attempted on suspended account",
+                        "Login blocked - account suspended");
                     return "auth/login";
                 }
                 

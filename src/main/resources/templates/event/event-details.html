@@ -24,6 +24,7 @@
                 <p th:text="${event.description}">Description</p>
                 <div class="quick-links">
                     <a class="button-link" th:href="@{/feedback/event/{eventId}/all(eventId=${event.eventId})}">View Feedback</a>
+                    <a class="button-link" th:href="@{/events/{eventId}/registered-users(eventId=${event.eventId})}">Registered Users</a>
                 </div>
             </div>
             <aside class="hero-side">

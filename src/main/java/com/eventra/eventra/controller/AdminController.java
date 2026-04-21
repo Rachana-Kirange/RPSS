@@ -96,6 +96,14 @@ public class AdminController {
     }
 
     /**
+     * Backward-compatible alias for users list page.
+     */
+    @GetMapping("/users/all")
+    public String manageAllUsers(HttpSession session, Model model) {
+        return manageUsers(session, model);
+    }
+
+    /**
      * View user details
      */
     @GetMapping("/users/{userId}")
@@ -253,9 +261,46 @@ public class AdminController {
         }
 
         var clubs = clubService.getAllClubs();
+        var clubHeads = adminService.getUsersByRole(RoleEnum.CLUB_HEAD);
         model.addAttribute("clubs", clubs);
+        model.addAttribute("clubHeads", clubHeads);
 
         return "admin/manage-clubs";
+    }
+
+    /**
+     * Assign club head to an existing club from manage clubs page
+     */
+    @PostMapping("/clubs/{clubId}/assign-head")
+    public String assignClubHead(@PathVariable Long clubId,
+                                 @RequestParam Long clubHeadId,
+                                 HttpSession session,
+                                 RedirectAttributes redirect) {
+        if (!isAdmin(session)) {
+            return "redirect:/dashboard";
+        }
+
+        try {
+            User clubHead = userService.getUserById(clubHeadId)
+                .orElseThrow(() -> new RuntimeException("Club head not found"));
+
+            if (clubHead.getRole().getRoleName() != RoleEnum.CLUB_HEAD) {
+                throw new RuntimeException("Selected user is not a CLUB_HEAD");
+            }
+
+            if (!clubHead.isApproved()) {
+                throw new RuntimeException("Club Head must be approved before assignment");
+            }
+
+            clubService.updateClubHead(clubId, clubHead);
+            redirect.addFlashAttribute("success", "Club head assigned successfully.");
+            log.info(String.format("Assigned club %d to club head %s", clubId, clubHead.getEmail()));
+        } catch (Exception e) {
+            log.warning(String.format("Error assigning club head: %s", e.getMessage()));
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+
+        return "redirect:/admin/clubs";
     }
 
     /**

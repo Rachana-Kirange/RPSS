@@ -61,7 +61,7 @@ public class AdminService {
      * Get users by role
      */
     public List<User> getUsersByRole(RoleEnum roleEnum) {
-        return userRepository.findByRole(roleEnum.name());
+        return userRepository.findByRole(roleEnum);
     }
 
     /**

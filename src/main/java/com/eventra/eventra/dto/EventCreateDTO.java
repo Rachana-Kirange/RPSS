@@ -16,6 +16,8 @@ public class EventCreateDTO {
     @NotBlank(message = "Event date and time is required")
     private String eventDateTime; // Format: yyyy-MM-dd'T'HH:mm
 
+    private String endDateTime; // Optional format: yyyy-MM-dd'T'HH:mm
+
     @NotBlank(message = "Venue is required")
     @Size(min = 3, max = 200, message = "Venue must be between 3 and 200 characters")
     private String venue;
@@ -83,6 +85,14 @@ public class EventCreateDTO {
 
     public void setVenue(String venue) {
         this.venue = venue;
+    }
+
+    public String getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(String endDateTime) {
+        this.endDateTime = endDateTime;
     }
 
     public Integer getMaxCapacity() {

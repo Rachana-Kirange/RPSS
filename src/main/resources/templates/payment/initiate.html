@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment | Eventra</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/events/{id}(id=${event.eventId})}">Back To Event</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="content-card" style="padding: 36px; margin-top: 18px; max-width: 760px;">
+        <h2>Complete Event Payment</h2>
+        <p class="muted" th:text="${event.title}">Event title</p>
+
+        <div class="grid-2" style="margin-top: 24px;">
+            <div class="grid-card tone-amber">
+                <h3>Amount Due</h3>
+                <p class="metric" th:text="${'₹' + event.paymentAmount}">₹0</p>
+            </div>
+            <div class="grid-card tone-blue">
+                <h3>Registration ID</h3>
+                <p class="metric" th:text="${registration.registrationId}">0</p>
+            </div>
+        </div>
+
+        <div class="list-card" style="margin-top: 24px;">
+            <h3>Payment Details</h3>
+            <p class="muted">This app currently uses a manual confirmation step. Enter a payment reference to complete registration and generate the pass.</p>
+
+            <form th:action="@{/payments/initiate/{id}(id=${registration.registrationId})}" method="post" style="display: grid; gap: 16px; margin-top: 16px;">
+                <label>
+                    Transaction ID / Reference
+                    <input type="text" name="transactionId" placeholder="UPI / bank reference / receipt number" required>
+                </label>
+                <button type="submit" class="button-link primary" style="width: fit-content;">Confirm Payment</button>
+            </form>
+        </div>
+    </main>
+</div>
+</body>
+</html>

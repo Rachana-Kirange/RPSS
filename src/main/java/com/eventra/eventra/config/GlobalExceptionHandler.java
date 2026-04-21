@@ -20,12 +20,34 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public String handleGlobalException(Exception e, Model model) {
         log.severe("500 ERROR: " + e.getClass().getName());
-        log.severe("MESSAGE: " + e.getMessage());
+        log.severe("MESSAGE: " + getMostSpecificMessage(e));
         e.printStackTrace();
-        
-        model.addAttribute("error", e.getMessage());
+
+        model.addAttribute("error", getMostSpecificMessage(e));
         model.addAttribute("errorClass", e.getClass().getSimpleName());
         
         return "error/500";
+    }
+
+    private String getMostSpecificMessage(Throwable throwable) {
+        if (throwable == null) {
+            return "Unexpected server error";
+        }
+
+        Throwable root = throwable;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+
+        String message = root.getMessage();
+        if (message == null || message.isBlank()) {
+            message = throwable.getMessage();
+        }
+
+        if (message == null || message.isBlank()) {
+            return root.getClass().getSimpleName();
+        }
+
+        return message;
     }
 }

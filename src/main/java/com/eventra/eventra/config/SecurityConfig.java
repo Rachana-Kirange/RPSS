@@ -101,14 +101,17 @@ public class SecurityConfig {
                     "/admin/users/**",
                     "/admin/roles/**",
                     "/admin/clubs/**",
+                    "/admin/events/**",
                     "/admin/audit-logs/**",
-                    "/admin/reports/**"
+                    "/admin/reports/**",
+                    "/admin/analytics"
                 ).hasAuthority("ADMIN")
                 
                 // Club management endpoints - CLUB_HEAD and ADMIN
                 // Note: Role hierarchy is enforced in RoleEnum.isHigherOrEqual()
                 .requestMatchers(
                     "/club/**",
+                    "/clubhead/**",
                     "/events/create/**",
                     "/events/manage/**"
                 ).hasAnyAuthority("CLUB_HEAD", "ADMIN")
@@ -118,6 +121,7 @@ public class SecurityConfig {
                     "/user/**", 
                     "/dashboard", 
                     "/events/**", 
+                    "/payments/**",
                     "/registrations/**", 
                     "/feedback/**", 
                     "/profile/**"

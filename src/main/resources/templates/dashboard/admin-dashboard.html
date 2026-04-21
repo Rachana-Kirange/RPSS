@@ -382,6 +382,26 @@
                 <a th:href="@{/admin/clubs/add}" class="btn-admin btn-success">+ Add Club</a>
             </div>
         </div>
+
+        <!-- Approved Events Visible to All -->
+        <div class="admin-card">
+            <h4>✅ Approved Events (Visible to All Dashboards)</h4>
+            <div th:if="${#lists.isEmpty(approvedEventsList)}" class="empty-state">
+                No approved events available.
+            </div>
+            <div th:unless="${#lists.isEmpty(approvedEventsList)}">
+                <div th:each="event : ${approvedEventsList}" class="admin-item">
+                    <div class="admin-item-info">
+                        <p class="admin-item-title" th:text="${event.title}">Event Title</p>
+                        <p class="admin-item-detail">
+                            <strong>Club:</strong> <span th:text="${event.club.clubName}">Club</span> |
+                            <strong>Date:</strong> <span th:text="${#temporals.format(event.eventDate, 'MMM dd, yyyy HH:mm')}">Date</span> |
+                            <strong>Seats Left:</strong> <span th:text="${event.availableSeats}">0</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Quick Actions -->

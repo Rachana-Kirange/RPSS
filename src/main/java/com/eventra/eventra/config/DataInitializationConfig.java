@@ -119,7 +119,14 @@ public class DataInitializationConfig implements WebMvcConfigurer {
             }
 
             Role adminRole = roleRepository.findByRoleName(RoleEnum.ADMIN)
-                .orElseThrow(() -> new IllegalStateException("ADMIN role must exist before creating the default admin"));
+                .orElseGet(() -> {
+                    Role role = new Role();
+                    role.setRoleName(RoleEnum.ADMIN);
+                    role.setDescription("Admin - System administrator with full access");
+                    role.setPermissions("{\"approve_events\": true, \"manage_users\": true, \"manage_clubs\": true, \"generate_reports\": true, \"view_analytics\": true}");
+                    log.info("ADMIN role was missing during admin initialization, creating it now");
+                    return roleRepository.save(role);
+                });
 
             User adminUser = new User();
             adminUser.setName("Rachana Kirange");

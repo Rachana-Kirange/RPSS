@@ -223,10 +223,10 @@
             <div th:if="${error}" class="error-box" th:text="${error}"></div>
             <div th:if="${success}" class="success-box" th:text="${success}"></div>
 
-            <label for="participantFullName" class="full">
+            <label for="studentFullName" class="full">
                 Full Name <span style="color: var(--danger);">*</span>
-                <input id="participantFullName" th:field="*{participantFullName}" type="text" placeholder="Your full name" required>
-                <span class="field-error" th:if="${#fields.hasErrors('participantFullName')}" th:errors="*{participantFullName}"></span>
+                <input id="studentFullName" th:field="*{studentFullName}" type="text" placeholder="Your full name" required>
+                <span class="field-error" th:if="${#fields.hasErrors('studentFullName')}" th:errors="*{studentFullName}"></span>
             </label>
 
             <label for="section">
@@ -247,10 +247,10 @@
                 <span class="field-error" th:if="${#fields.hasErrors('mobileNumber')}" th:errors="*{mobileNumber}"></span>
             </label>
 
-            <label for="participantEmail" class="full">
+            <label for="studentEmail" class="full">
                 Email Address <span style="color: var(--danger);">*</span>
-                <input id="participantEmail" th:field="*{participantEmail}" type="email" placeholder="you@example.com" required>
-                <span class="field-error" th:if="${#fields.hasErrors('participantEmail')}" th:errors="*{participantEmail}"></span>
+                <input id="studentEmail" th:field="*{studentEmail}" type="email" placeholder="you@example.com" required>
+                <span class="field-error" th:if="${#fields.hasErrors('studentEmail')}" th:errors="*{studentEmail}"></span>
             </label>
 
             <div class="form-buttons">

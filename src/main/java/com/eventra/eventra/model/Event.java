@@ -30,6 +30,9 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime eventDate;
 
+    @Column
+    private LocalDateTime endDate;
+
     @Column(nullable = false, length = 200)
     private String venue;
 
@@ -138,6 +141,14 @@ public class Event {
 
     public void setEventDate(LocalDateTime eventDate) {
         this.eventDate = eventDate;
+    }
+
+    public LocalDateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDateTime endDate) {
+        this.endDate = endDate;
     }
 
     public String getVenue() {

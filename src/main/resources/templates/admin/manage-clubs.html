@@ -119,6 +119,63 @@
             margin-bottom: 20px;
         }
 
+        .flash-message {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .flash-success {
+            background: rgba(22, 199, 132, 0.2);
+            border: 1px solid #16c784;
+            color: #16c784;
+        }
+
+        .flash-error {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            color: #ff9cab;
+        }
+
+        .assign-club-head {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.2);
+            display: grid;
+            gap: 8px;
+        }
+
+        .assign-club-head label {
+            color: #16c784;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .assign-club-head select {
+            background: rgba(15, 52, 96, 0.75);
+            color: #fff;
+            border: 1px solid #365f9b;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .assign-btn {
+            justify-self: start;
+            background: #0f3460;
+            color: #fff;
+            border: 1px solid #16c784;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .assign-btn:hover {
+            background: #16c784;
+            color: #0f1b2d;
+        }
+
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
@@ -140,6 +197,9 @@
 </div>
 
 <div class="content-wrapper">
+    <div th:if="${success}" class="flash-message flash-success" th:text="${success}"></div>
+    <div th:if="${error}" class="flash-message flash-error" th:text="${error}"></div>
+
     <div th:if="${#lists.isEmpty(clubs)}" class="empty-state">
         <h2>No Clubs Found</h2>
         <p>Start by adding your first club. Click the "Add New Club" button to begin.</p>
@@ -168,6 +228,20 @@
                 <span th:if="${club.isActive}" class="status-badge status-active">✓ Active</span>
                 <span th:unless="${club.isActive}" class="status-badge status-inactive">✗ Inactive</span>
             </div>
+
+            <form class="assign-club-head"
+                  th:action="@{/admin/clubs/{clubId}/assign-head(clubId=${club.clubId})}"
+                  method="post">
+                <label th:for="${'club-head-' + club.clubId}">Assign Club Head</label>
+                <select th:id="${'club-head-' + club.clubId}" name="clubHeadId" required>
+                    <option value="" disabled selected>Select club head</option>
+                    <option th:each="head : ${clubHeads}"
+                            th:value="${head.userId}"
+                            th:selected="${club.clubHead != null and club.clubHead.userId == head.userId}"
+                            th:text="${head.name + ' (' + head.email + ')'}">Head</option>
+                </select>
+                <button type="submit" class="assign-btn">Assign Club Head</button>
+            </form>
         </div>
     </div>
 </div>

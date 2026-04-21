@@ -21,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByIsActiveTrue();
 
     @Query("SELECT u FROM User u WHERE u.role.roleName = :roleName")
-    List<User> findByRole(@Param("roleName") String roleName);
+    List<User> findByRole(@Param("roleName") RoleEnum roleName);
 
     @Query("SELECT u FROM User u WHERE u.role.roleId = :roleId")
     List<User> findByRoleId(@Param("roleId") Long roleId);

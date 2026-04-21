@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Participants | Eventra</title>
+    <title>Registered Users | Eventra</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
 </head>
 <body>
@@ -20,7 +20,7 @@
     <main class="content-card" style="padding: 36px; margin-top: 18px;">
         <div class="section-head" style="margin-bottom: 24px;">
             <div>
-                <h2>Manage Participants</h2>
+                <h2>Registered Users</h2>
                 <p th:text="${event.title}" style="color: var(--shadow); font-size: 0.95rem;">Event title</p>
             </div>
             <div>
@@ -48,22 +48,30 @@
         </div>
 
         <div th:unless="${#lists.isEmpty(registrations)}" class="list-card">
-            <h3>Registered Participants</h3>
+            <h3>Registered Users</h3>
             <div style="overflow-x: auto; margin-top: 16px;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                     <thead>
                         <tr style="border-bottom: 2px solid var(--line); background-color: rgba(0,0,0,0.02);">
                             <th style="padding: 12px; text-align: left;">Student Name</th>
+                            <th style="padding: 12px; text-align: left;">Section</th>
+                            <th style="padding: 12px; text-align: left;">Roll No.</th>
+                            <th style="padding: 12px; text-align: left;">Mobile</th>
                             <th style="padding: 12px; text-align: left;">Email</th>
                             <th style="padding: 12px; text-align: left;">Registered On</th>
+                            <th style="padding: 12px; text-align: left;">Payment</th>
                             <th style="padding: 12px; text-align: left;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="registration : ${registrations}" style="border-bottom: 1px solid var(--line);">
-                            <td style="padding: 12px;" th:text="${registration.student.name}">Student Name</td>
-                            <td style="padding: 12px;" th:text="${registration.student.email}">student@email.com</td>
+                            <td style="padding: 12px;" th:text="${registration.studentFullName != null && !#strings.isEmpty(registration.studentFullName) ? registration.studentFullName : registration.student.name}">Student Name</td>
+                            <td style="padding: 12px;" th:text="${registration.section != null && !#strings.isEmpty(registration.section) ? registration.section : '-'}">A1</td>
+                            <td style="padding: 12px;" th:text="${registration.rollNumber != null && !#strings.isEmpty(registration.rollNumber) ? registration.rollNumber : '-'}">01</td>
+                            <td style="padding: 12px;" th:text="${registration.mobileNumber != null && !#strings.isEmpty(registration.mobileNumber) ? registration.mobileNumber : '-'}">9999999999</td>
+                            <td style="padding: 12px;" th:text="${registration.studentEmail != null && !#strings.isEmpty(registration.studentEmail) ? registration.studentEmail : registration.student.email}">student@email.com</td>
                             <td style="padding: 12px;" th:text="${#temporals.format(registration.registrationDate, 'MMM dd, yyyy')}">Jan 01, 2024</td>
+                            <td style="padding: 12px;" th:text="${registration.paymentStatus}">NOT_REQUIRED</td>
                             <td style="padding: 12px;">
                                 <span th:text="${registration.status}" style="display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: var(--primary); color: white; font-size: 0.8rem;">PENDING</span>
                             </td>
@@ -83,15 +91,19 @@
     <script>
         function downloadParticipantList() {
             const registrations = document.querySelectorAll('table tbody tr');
-            let csv = 'Student Name,Email,Registered On,Status\n';
+            let csv = 'Student Name,Section,Roll No.,Mobile,Email,Registered On,Payment,Status\n';
             
             registrations.forEach(row => {
                 const cells = row.querySelectorAll('td');
                 const name = cells[0].textContent.trim();
-                const email = cells[1].textContent.trim();
-                const date = cells[2].textContent.trim();
-                const status = cells[3].textContent.trim();
-                csv += `"${name}","${email}","${date}","${status}"\n`;
+                const section = cells[1].textContent.trim();
+                const rollNo = cells[2].textContent.trim();
+                const mobile = cells[3].textContent.trim();
+                const email = cells[4].textContent.trim();
+                const date = cells[5].textContent.trim();
+                const payment = cells[6].textContent.trim();
+                const status = cells[7].textContent.trim();
+                csv += `"${name}","${section}","${rollNo}","${mobile}","${email}","${date}","${payment}","${status}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv' });

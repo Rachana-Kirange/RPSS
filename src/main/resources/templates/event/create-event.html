@@ -5,6 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Event | Eventra</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .event-form-shell {
+            display: grid;
+            gap: 18px;
+        }
+
+        .event-form-hero {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 1px solid #d6dde6;
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .event-form-hero h2 {
+            margin: 0;
+            color: #1f2a37;
+            letter-spacing: 0.2px;
+        }
+
+        .event-form-hero p {
+            margin: 8px 0 0;
+            color: #4b5968;
+        }
+
+        .form-panel {
+            border: 1px solid #d6dde6;
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 20px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .form-panel h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1f2a37;
+        }
+
+        .form-panel p {
+            margin: 2px 0 0;
+            color: #617183;
+            font-size: 0.9rem;
+        }
+
+        .event-form-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .event-form-grid label {
+            display: grid;
+            gap: 8px;
+            color: #1f2a37;
+            font-weight: 600;
+        }
+
+        .event-form-grid input,
+        .event-form-grid textarea {
+            width: 100%;
+            border: 1px solid #c7d0db;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fbfdff;
+        }
+
+        .event-form-grid input:focus,
+        .event-form-grid textarea:focus {
+            outline: none;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .option-row input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            transform: translateY(1px);
+        }
+
+        .event-form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-top: 1px solid #e4e9ef;
+            padding-top: 16px;
+        }
+
+        .event-form-actions-left,
+        .event-form-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            border: none;
+            border-radius: 10px;
+            background: #0f766e;
+            color: #fff;
+            padding: 11px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: #0c5f58;
+        }
+
+        .btn-secondary {
+            border: 1px solid #b8c3d1;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #2c3e50;
+            padding: 10px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .validation-summary {
+            border: 1px solid #e5b5b5;
+            background: #fff5f5;
+            color: #7a1c1c;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+        }
+
+        .validation-summary ul {
+            margin: 8px 0 0;
+            padding-left: 20px;
+        }
+
+        .field-error {
+            color: #b42318;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .event-form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .event-form-actions-left,
+            .event-form-actions-right {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .event-form-actions-left .btn-secondary,
+            .event-form-actions-right .btn-primary,
+            .event-form-actions-right .btn-secondary {
+                flex: 1;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="page-shell">
@@ -17,82 +196,126 @@
     </header>
 
     <main class="content-card" style="padding: 36px; margin-top: 18px;">
-        <div class="section-head">
-            <div>
+        <div class="event-form-shell">
+            <section class="event-form-hero">
                 <h2>Create Event Proposal</h2>
                 <p th:if="${club != null}">Submitting for <strong th:text="${club.clubName}">Club</strong>.</p>
-            </div>
+                <p>Use the form below to submit a complete, review-ready proposal for admin approval.</p>
+            </section>
+
+            <div th:if="${error}" class="error-box" style="margin-bottom: 4px;" th:text="${error}"></div>
+
+            <form th:action="@{/events/create}" th:object="${eventCreateDTO}" method="post" class="event-form-grid">
+                <div th:if="${#fields.hasAnyErrors()}" class="validation-summary">
+                    <strong>Please fix the following before submitting:</strong>
+                    <ul>
+                        <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Validation error</li>
+                    </ul>
+                </div>
+
+                <section class="form-panel">
+                    <h3>Basic Information</h3>
+                    <p>Define the core details participants will see first.</p>
+
+                    <label>
+                        Event Title
+                        <input type="text" th:field="*{title}" required>
+                        <span class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+                    </label>
+
+                    <label>
+                        Description
+                        <textarea th:field="*{description}" rows="5"></textarea>
+                        <span class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                    </label>
+                </section>
+
+                <section class="form-panel">
+                    <h3>Schedule & Location</h3>
+                    <p>Set the timeline and venue details.</p>
+
+                    <div class="grid-2">
+                        <label>
+                            Start Date & Time
+                            <input type="datetime-local" th:field="*{eventDateTime}" required>
+                            <span class="field-error" th:if="${#fields.hasErrors('eventDateTime')}" th:errors="*{eventDateTime}"></span>
+                        </label>
+
+                        <label>
+                            End Date & Time (Optional)
+                            <input type="datetime-local" th:field="*{endDateTime}">
+                        </label>
+                    </div>
+
+                    <div class="grid-2">
+                        <label>
+                            Venue
+                            <input type="text" th:field="*{venue}" required>
+                            <span class="field-error" th:if="${#fields.hasErrors('venue')}" th:errors="*{venue}"></span>
+                        </label>
+
+                        <label>
+                            Max Capacity
+                            <input type="number" th:field="*{maxCapacity}" min="5" required>
+                            <span class="field-error" th:if="${#fields.hasErrors('maxCapacity')}" th:errors="*{maxCapacity}"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="form-panel">
+                    <h3>Event Options</h3>
+                    <p>Control attendance, payment, and proposal notes.</p>
+
+                    <fieldset style="border:1px solid #d7dee8; border-radius:12px; padding:14px; background:#f9fbfc;">
+                        <legend style="font-weight:600; padding:0 8px; color:#22313f;">Configuration</legend>
+
+                        <label class="option-row">
+                            <input type="checkbox" th:field="*{requiresQR}" value="true">
+                            <span>Require QR code for attendance</span>
+                        </label>
+
+                        <label class="option-row">
+                            <input type="checkbox" th:field="*{requiresPayment}" value="true" id="paymentCheckbox">
+                            <span>Payment required</span>
+                        </label>
+
+                        <label id="paymentAmountLabel" style="display:none; margin-top:10px; font-weight:600;">
+                            Payment Amount (₹)
+                            <input type="number" th:field="*{paymentAmount}" min="1" step="0.01" placeholder="0.00">
+                            <span class="field-error" th:if="${#fields.hasErrors('paymentAmount')}" th:errors="*{paymentAmount}"></span>
+                        </label>
+                    </fieldset>
+
+                    <label>
+                        Activity Proposal
+                        <textarea th:field="*{activityProposal}" rows="4" placeholder="Describe the event objective, execution plan, and expected outcome."></textarea>
+                        <span class="field-error" th:if="${#fields.hasErrors('activityProposal')}" th:errors="*{activityProposal}"></span>
+                    </label>
+                </section>
+
+                <section class="event-form-actions">
+                    <div class="event-form-actions-left">
+                        <a th:href="@{/dashboard}" class="btn-secondary">Cancel</a>
+                        <button type="reset" class="btn-secondary">Reset Form</button>
+                    </div>
+                    <div class="event-form-actions-right">
+                        <button type="submit" class="btn-primary">Submit Event Proposal</button>
+                    </div>
+                </section>
+            </form>
         </div>
 
-        <div th:if="${error}" class="error-box" style="margin-bottom: 16px;" th:text="${error}"></div>
+        <script>
+            const paymentCheckbox = document.getElementById('paymentCheckbox');
+            const paymentAmountLabel = document.getElementById('paymentAmountLabel');
 
-        <form th:action="@{/events/create}" th:object="${eventCreateDTO}" method="post" style="display:grid; gap:16px;">
-            <label>
-                Event Title
-                <input type="text" th:field="*{title}" required>
-            </label>
+            function togglePaymentAmount() {
+                paymentAmountLabel.style.display = paymentCheckbox.checked ? 'block' : 'none';
+            }
 
-            <label>
-                Description
-                <textarea th:field="*{description}" rows="6" style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
-            </label>
-
-            <div class="grid-2">
-                <label>
-                    Date & Time
-                    <input type="datetime-local" th:field="*{eventDateTime}" required>
-                </label>
-
-                <label>
-                    Venue
-                    <input type="text" th:field="*{venue}" required>
-                </label>
-            </div>
-
-            <label>
-                Max Capacity
-                <input type="number" th:field="*{maxCapacity}" min="5" required>
-            </label>
-
-            <fieldset style="border:1px solid var(--line); border-radius:14px; padding:16px; background-color:rgba(0,0,0,0.02);">
-                <legend style="font-weight:600; padding:0 8px;">Event Options</legend>
-
-                <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                    <input type="checkbox" th:field="*{requiresQR}" value="true">
-                    <span>Require QR Code for attendance</span>
-                </label>
-
-                <label style="display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" th:field="*{requiresPayment}" value="true" id="paymentCheckbox">
-                    <span>Payment Required</span>
-                </label>
-
-                <label id="paymentAmountLabel" style="display:none; margin-top:12px;">
-                    Payment Amount (₹)
-                    <input type="number" th:field="*{paymentAmount}" min="1" step="0.01" placeholder="0.00">
-                </label>
-            </fieldset>
-
-            <label>
-                Activity Proposal
-                <textarea th:field="*{activityProposal}" rows="4" placeholder="Describe the activity/event proposal for admin review..." style="padding:14px 16px; border-radius:14px; border:1px solid var(--line); font:inherit;"></textarea>
-            </label>
-
-            <script>
-                // Show/hide payment amount based on checkbox
-                const paymentCheckbox = document.getElementById('paymentCheckbox');
-                const paymentAmountLabel = document.getElementById('paymentAmountLabel');
-                
-                function togglePaymentAmount() {
-                    paymentAmountLabel.style.display = paymentCheckbox.checked ? 'block' : 'none';
-                }
-                
-                paymentCheckbox.addEventListener('change', togglePaymentAmount);
-                togglePaymentAmount(); // Initial state
-            </script>
-
-            <button type="submit">Submit Event</button>
-        </form>
+            paymentCheckbox.addEventListener('change', togglePaymentAmount);
+            togglePaymentAmount();
+        </script>
     </main>
 </div>
 </body>

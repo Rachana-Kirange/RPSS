@@ -4,6 +4,7 @@ import com.eventra.eventra.model.Event;
 import com.eventra.eventra.model.Club;
 import com.eventra.eventra.model.User;
 import com.eventra.eventra.enums.EventStatus;
+import com.eventra.eventra.enums.RoleEnum;
 import com.eventra.eventra.repository.EventRepository;
 import com.eventra.eventra.repository.ClubRepository;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -32,10 +34,10 @@ public class EventService {
      * Create a new event (Club Head)
      */
     public Event createEvent(String title, String description, LocalDateTime eventDate,
-                        String venue, Integer maxCapacity, Long clubId, User user) {
+                        LocalDateTime endDate, String venue, Integer maxCapacity, Long clubId, User user) {
 
     // 🔥 ROLE CHECK HERE (MAIN FIX)
-    if (!user.getRole().getRoleName().name().equals("CLUB_HEAD")) {
+    if (user == null || user.getRole() == null || user.getRole().getRoleName() != RoleEnum.CLUB_HEAD) {
         throw new RuntimeException("Only Club Heads can create events");
     }
 
@@ -46,6 +48,7 @@ public class EventService {
     event.setTitle(title);
     event.setDescription(description);
     event.setEventDate(eventDate);
+    event.setEndDate(endDate != null ? endDate : eventDate);
     event.setVenue(venue);
     event.setMaxCapacity(maxCapacity);
     event.setClub(club);
@@ -59,22 +62,28 @@ public class EventService {
      * Create a new event with optional fields (Club Head)
      */
     public Event createEvent(String title, String description, LocalDateTime eventDate,
-                        String venue, Integer maxCapacity, Long clubId, User user,
+                        LocalDateTime endDate, String venue, Integer maxCapacity, Long clubId, User user,
                         Boolean requiresPayment, java.math.BigDecimal paymentAmount,
                         Boolean requiresQR, String activityProposal) {
 
         // 🔥 ROLE CHECK HERE (MAIN FIX)
-        if (!user.getRole().getRoleName().name().equals("CLUB_HEAD")) {
+        if (user == null || user.getRole() == null || user.getRole().getRoleName() != RoleEnum.CLUB_HEAD) {
             throw new RuntimeException("Only Club Heads can create events");
         }
 
         Club club = clubRepository.findById(clubId)
             .orElseThrow(() -> new RuntimeException("Club not found"));
 
+        LocalDateTime resolvedEndDate = endDate != null ? endDate : eventDate;
+        if (resolvedEndDate.isBefore(eventDate)) {
+            throw new IllegalArgumentException("End date/time cannot be before start date/time");
+        }
+
         Event event = new Event();
         event.setTitle(title);
         event.setDescription(description);
         event.setEventDate(eventDate);
+        event.setEndDate(resolvedEndDate);
         event.setVenue(venue);
         event.setMaxCapacity(maxCapacity);
         event.setClub(club);
@@ -118,7 +127,7 @@ public class EventService {
      * Get event by ID
      */
     public Optional<Event> getEventById(Long eventId) {
-        return eventRepository.findById(eventId);
+        return eventRepository.findById(eventId).map(this::autoCompleteIfEnded);
     }
 
     /**
@@ -153,7 +162,25 @@ public class EventService {
      * Get events created by specific user (Club Head)
      */
     public List<Event> getEventsByCreator(Long userId) {
-        return eventRepository.findByCreatedByUserId(userId);
+        return eventRepository.findByCreatedByUserId(userId)
+            .stream()
+            .map(this::autoCompleteIfEnded)
+            .collect(Collectors.toList());
+    }
+
+    private Event autoCompleteIfEnded(Event event) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime effectiveEndDate = event.getEndDate() != null ? event.getEndDate() : event.getEventDate();
+
+        if (event.getStatus() == EventStatus.APPROVED
+            && effectiveEndDate != null
+            && !effectiveEndDate.isAfter(now)) {
+            event.setStatus(EventStatus.COMPLETED);
+            log.info(String.format("Event auto-completed after end date: %d", event.getEventId()));
+            return eventRepository.save(event);
+        }
+
+        return event;
     }
 
     /**

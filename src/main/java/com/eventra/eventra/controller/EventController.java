@@ -3,15 +3,20 @@
     import com.eventra.eventra.model.User;
     import com.eventra.eventra.model.Event;
     import com.eventra.eventra.dto.EventCreateDTO;
+    import com.eventra.eventra.enums.EventStatus;
+    import com.eventra.eventra.enums.MediaFileType;
+    import com.eventra.eventra.enums.RoleEnum;
     import com.eventra.eventra.service.EventService;
     import com.eventra.eventra.service.RegistrationService;
     import com.eventra.eventra.service.ClubService;
+    import com.eventra.eventra.service.MediaService;
     import jakarta.servlet.http.HttpSession;
     import jakarta.validation.Valid;
     import org.springframework.stereotype.Controller;
     import org.springframework.ui.Model;
     import org.springframework.validation.BindingResult;
     import org.springframework.web.bind.annotation.*;
+    import org.springframework.web.multipart.MultipartFile;
 
     import java.time.LocalDateTime;
     import java.time.format.DateTimeFormatter;
@@ -27,13 +32,15 @@
         private final EventService eventService;
         private final RegistrationService registrationService;
         private final ClubService clubService;
+        private final MediaService mediaService;
         private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 
         public EventController(EventService eventService, RegistrationService registrationService,
-                            ClubService clubService) {
+                            ClubService clubService, MediaService mediaService) {
             this.eventService = eventService;
             this.registrationService = registrationService;
             this.clubService = clubService;
+            this.mediaService = mediaService;
         }
 
         /**
@@ -80,7 +87,7 @@
         public String showCreateEventForm(HttpSession session, Model model) {
             User user = (User) session.getAttribute("loggedInUser");
 
-            if (user == null || !user.getRole().getRoleName().name().equals("CLUB_HEAD")) {
+            if (user == null || user.getRole() == null || user.getRole().getRoleName() != RoleEnum.CLUB_HEAD) {
                 return "redirect:/dashboard";
             }
 
@@ -107,24 +114,34 @@
                 return "redirect:/auth/login";
             }
 
-            var club = clubService.getClubByClubHead(user.getUserId());
-            if (club.isEmpty()) {
-                model.addAttribute("error", "You are not assigned to any club");
-                return "error/not-assigned";
-            }
-
-            if (result.hasErrors()) {
-                model.addAttribute("club", club.get());
-                return "event/create-event";
-            }
-
             try {
+                var club = clubService.getClubByClubHead(user.getUserId());
+                if (club.isEmpty()) {
+                    model.addAttribute("error", "You are not assigned to any club");
+                    return "error/not-assigned";
+                }
+
+                if (result.hasErrors()) {
+                    model.addAttribute("club", club.get());
+                    return "event/create-event";
+                }
+
                 LocalDateTime eventDateTime = LocalDateTime.parse(dto.getEventDateTime(), dateTimeFormatter);
+                LocalDateTime endDateTime = dto.getEndDateTime() != null && !dto.getEndDateTime().isBlank()
+                    ? LocalDateTime.parse(dto.getEndDateTime(), dateTimeFormatter)
+                    : eventDateTime;
+
+                if (endDateTime.isBefore(eventDateTime)) {
+                    model.addAttribute("error", "End date/time cannot be before start date/time");
+                    model.addAttribute("club", club.get());
+                    return "event/create-event";
+                }
 
                 Event event = eventService.createEvent(
                     dto.getTitle(),
                     dto.getDescription(),
                     eventDateTime,
+                    endDateTime,
                     dto.getVenue(),
                     dto.getMaxCapacity(),
                     club.get().getClubId(),
@@ -138,8 +155,15 @@
                 log.info(String.format("Event created: %d by %s", event.getEventId(), user.getEmail()));
                 return "redirect:/dashboard";
             } catch (Exception e) {
-                model.addAttribute("error", "Error creating event: " + e.getMessage());
-                model.addAttribute("club", club.get());
+                log.severe("Error creating event for user " + user.getEmail() + ": " + e.getMessage());
+                e.printStackTrace();
+                String message = e.getMessage();
+                if (message != null && (message.contains("Unknown column") || message.contains("end_date"))) {
+                    message = "Database schema is not updated for new event fields. Restart the application to apply schema changes.";
+                }
+                model.addAttribute("error", "Error creating event: " + message);
+                model.addAttribute("club", clubService.getClubByClubHead(user.getUserId()).orElse(null));
+                model.addAttribute("eventCreateDTO", dto);
                 return "event/create-event";
             }
         }
@@ -197,7 +221,7 @@
         /**
          * View event participants (Club Head)
          */
-        @GetMapping("/{eventId}/participants")
+        @GetMapping({"/{eventId}/participants", "/{eventId}/registered-users"})
         public String viewParticipants(@PathVariable Long eventId, HttpSession session, Model model) {
             User user = (User) session.getAttribute("loggedInUser");
             if (user == null) {
@@ -244,9 +268,57 @@
                 return "redirect:/dashboard";
             }
 
+            if (event.get().getStatus() != EventStatus.COMPLETED) {
+                return "redirect:/events/" + eventId;
+            }
+
             model.addAttribute("event", event.get());
             model.addAttribute("media", event.get().getMedia());
             return "event/upload-media";
+        }
+
+        /**
+         * Upload media for an event (Club Head)
+         */
+        @PostMapping("/{eventId}/media/upload")
+        public String uploadMedia(@PathVariable Long eventId,
+                                  @RequestParam("files") MultipartFile[] files,
+                                  @RequestParam(required = false) String description,
+                                  HttpSession session,
+                                  Model model) {
+            User user = (User) session.getAttribute("loggedInUser");
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            Optional<Event> event = eventService.getEventById(eventId);
+            if (event.isEmpty()) {
+                model.addAttribute("error", "Event not found");
+                return "error/not-found";
+            }
+
+            if (!event.get().getCreatedBy().getUserId().equals(user.getUserId())) {
+                return "redirect:/dashboard";
+            }
+
+            if (event.get().getStatus() != EventStatus.COMPLETED) {
+                return "redirect:/events/" + eventId;
+            }
+
+            try {
+                for (MultipartFile file : files) {
+                    if (!file.isEmpty()) {
+                        mediaService.uploadMedia(eventId, file, inferMediaType(file), description, user);
+                    }
+                }
+
+                return "redirect:/events/" + eventId + "/media";
+            } catch (Exception e) {
+                model.addAttribute("error", "Error uploading media: " + e.getMessage());
+                model.addAttribute("event", event.get());
+                model.addAttribute("media", event.get().getMedia());
+                return "event/upload-media";
+            }
         }
 
         /**
@@ -268,6 +340,10 @@
             // Check if user is the event creator
             if (!event.get().getCreatedBy().getUserId().equals(user.getUserId())) {
                 return "redirect:/dashboard";
+            }
+
+            if (event.get().getStatus() != EventStatus.COMPLETED) {
+                return "redirect:/events/" + eventId;
             }
 
             model.addAttribute("event", event.get());
@@ -300,8 +376,40 @@
                 return "redirect:/dashboard";
             }
 
+            if (event.get().getStatus() != EventStatus.COMPLETED) {
+                return "redirect:/events/" + eventId;
+            }
+
             eventService.saveEventReport(eventId, report);
             log.info(String.format("Event report saved for event: %d", eventId));
             return "redirect:/events/" + eventId + "/report";
+        }
+
+        private MediaFileType inferMediaType(MultipartFile file) {
+            String contentType = file.getContentType();
+            if (contentType != null) {
+                if (contentType.startsWith("image/")) {
+                    return MediaFileType.IMAGE;
+                }
+                if (contentType.startsWith("video/")) {
+                    return MediaFileType.VIDEO;
+                }
+            }
+
+            String fileName = file.getOriginalFilename();
+            if (fileName != null) {
+                String lowerCaseName = fileName.toLowerCase();
+                if (lowerCaseName.endsWith(".png") || lowerCaseName.endsWith(".jpg")
+                    || lowerCaseName.endsWith(".jpeg") || lowerCaseName.endsWith(".gif")
+                    || lowerCaseName.endsWith(".webp")) {
+                    return MediaFileType.IMAGE;
+                }
+                if (lowerCaseName.endsWith(".mp4") || lowerCaseName.endsWith(".mov")
+                    || lowerCaseName.endsWith(".avi") || lowerCaseName.endsWith(".mkv")) {
+                    return MediaFileType.VIDEO;
+                }
+            }
+
+            return MediaFileType.DOCUMENT;
         }
     }

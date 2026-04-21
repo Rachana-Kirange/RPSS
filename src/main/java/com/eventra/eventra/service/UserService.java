@@ -166,7 +166,7 @@ public class UserService {
      * Get all users by role
      */
     public List<User> getUsersByRole(RoleEnum role) {
-        return userRepository.findByRole(role.name());
+        return userRepository.findByRole(role);
     }
 
     /**

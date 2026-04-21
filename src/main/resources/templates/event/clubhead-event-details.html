@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | Club Head</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+    <style>
+        .event-title {
+            margin: 0;
+            line-height: 1.25;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .event-description {
+            margin: 10px 0 0;
+            line-height: 1.5;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .event-meta-wrap {
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .registered-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            table-layout: fixed;
+        }
+
+        .registered-table th,
+        .registered-table td {
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .registered-table th {
+            background: rgba(0, 0, 0, 0.03);
+            border-bottom: 2px solid var(--line);
+        }
+
+        .registered-table tr {
+            border-bottom: 1px solid var(--line);
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header class="topbar">
+        <a class="brand" th:href="@{/}">Event<span>ra</span></a>
+        <nav class="nav">
+            <a th:href="@{/clubhead/dashboard}">Dashboard</a>
+            <a th:href="@{/clubhead/events}">All Events</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </nav>
+    </header>
+
+    <main class="page-stack">
+        <section class="hero-card">
+            <div class="hero-copy">
+                <div class="badge" th:text="${event.status}">PENDING</div>
+                <h1 class="event-title" th:text="${event.title}">Event Title</h1>
+                <p class="event-description" th:text="${event.description}">Description</p>
+
+                <div class="quick-links" style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a th:if="${event.status.name() == 'COMPLETED'}" class="button-link" th:href="@{/clubhead/events/{id}/media(id=${event.eventId})}">Upload Media</a>
+                    <a th:if="${event.status.name() == 'COMPLETED'}" class="button-link" th:href="@{/clubhead/events/{id}/report(id=${event.eventId})}">Create Report</a>
+                    <span th:if="${event.status.name() != 'COMPLETED'}" style="color: var(--shadow); font-size: 0.9rem;">
+                        Media upload and report creation become available once the event is completed.
+                    </span>
+                </div>
+            </div>
+            <aside class="hero-side">
+                <div class="grid-card">
+                    <h3>Event Snapshot</h3>
+                    <p class="simple-meta event-meta-wrap">
+                        <strong>Venue:</strong> <span th:text="${event.venue}">venue</span><br>
+                        <strong>Start:</strong> <span th:text="${#temporals.format(event.eventDate, 'MMM dd, yyyy HH:mm')}">date</span><br>
+                        <strong>End:</strong> <span th:text="${event.endDate != null ? #temporals.format(event.endDate, 'MMM dd, yyyy HH:mm') : '-'}">-</span><br>
+                        <strong>Capacity:</strong> <span th:text="${event.maxCapacity}">0</span><br>
+                        <strong>Registrations:</strong> <span th:text="${registrationCount}">0</span><br>
+                        <strong>Available Seats:</strong> <span th:text="${availableSeats}">0</span>
+                    </p>
+                </div>
+            </aside>
+        </section>
+
+        <section class="list-card">
+            <div class="section-head" style="margin-bottom: 14px;">
+                <div>
+                    <h3>Registered User Details</h3>
+                    <p style="color: var(--shadow); font-size: 0.9rem;">Complete registration data submitted by users for this event.</p>
+                </div>
+                <a class="button-link" th:href="@{/clubhead/events}">Back to All Events</a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
+                No users have registered for this event yet.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(registrations)}" style="overflow-x:auto;">
+                <table class="registered-table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Section</th>
+                        <th>Roll No.</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Registered On</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="registration : ${registrations}">
+                        <td th:text="${registration.studentFullName != null && !#strings.isEmpty(registration.studentFullName) ? registration.studentFullName : registration.student.name}">Name</td>
+                        <td th:text="${registration.section != null && !#strings.isEmpty(registration.section) ? registration.section : '-'}">A1</td>
+                        <td th:text="${registration.rollNumber != null && !#strings.isEmpty(registration.rollNumber) ? registration.rollNumber : '-'}">01</td>
+                        <td th:text="${registration.mobileNumber != null && !#strings.isEmpty(registration.mobileNumber) ? registration.mobileNumber : '-'}">9999999999</td>
+                        <td th:text="${registration.studentEmail != null && !#strings.isEmpty(registration.studentEmail) ? registration.studentEmail : registration.student.email}">mail@example.com</td>
+                        <td th:text="${registration.paymentStatus}">NOT_REQUIRED</td>
+                        <td th:text="${registration.status}">CONFIRMED</td>
+                        <td th:text="${#temporals.format(registration.registrationDate, 'MMM dd, yyyy HH:mm')}">date</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

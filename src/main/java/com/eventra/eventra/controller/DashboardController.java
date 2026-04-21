@@ -36,41 +36,46 @@ public class DashboardController {
      */
     @GetMapping
     public String dashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("loggedInUser");
+        try {
+            User user = (User) session.getAttribute("loggedInUser");
 
-        if (user == null) {
-            return "redirect:/auth/login";
-        }
-
-        // Refresh user from database to get latest approval status
-        user = userService.getUserById(user.getUserId()).orElse(user);
-        
-        // Update session with refreshed user
-        session.setAttribute("loggedInUser", user);
-
-        // Verify role is loaded
-        if (user.getRole() == null) {
-            model.addAttribute("error", "User role not assigned. Please contact administrator.");
-            return "error/unauthorized";
-        }
-
-        // Check approval status for CLUB_HEAD and ADMIN roles
-        RoleEnum role = user.getRole().getRoleName();
-        if ((role == RoleEnum.CLUB_HEAD || role == RoleEnum.ADMIN) && !user.isApproved()) {
-            model.addAttribute("message", "Your account is pending admin approval. Please wait for approval notification.");
-            model.addAttribute("status", user.getApprovalStatus().getDisplayName());
-            return "error/waiting-approval";
-        }
-
-        switch (role) {
-            case PARTICIPANT:
-                return studentDashboard(user, model);
-            case CLUB_HEAD:
-                return clubHeadDashboard(user, model);
-            case ADMIN:
-                return adminDashboard(model);
-            default:
+            if (user == null) {
                 return "redirect:/auth/login";
+            }
+
+            // Refresh user from database to get latest approval status
+            user = userService.getUserById(user.getUserId()).orElse(user);
+
+            // Update session with refreshed user
+            session.setAttribute("loggedInUser", user);
+
+            // Verify role is loaded
+            if (user.getRole() == null || user.getRole().getRoleName() == null) {
+                model.addAttribute("error", "User role not assigned. Please contact administrator.");
+                return "error/unauthorized";
+            }
+
+            // Check approval status for CLUB_HEAD and ADMIN roles
+            RoleEnum role = user.getRole().getRoleName();
+            if ((role == RoleEnum.CLUB_HEAD || role == RoleEnum.ADMIN) && !user.isApproved()) {
+                model.addAttribute("message", "Your account is pending admin approval. Please wait for approval notification.");
+                model.addAttribute("status", user.getApprovalStatus() != null ? user.getApprovalStatus().getDisplayName() : "PENDING");
+                return "error/waiting-approval";
+            }
+
+            switch (role) {
+                case PARTICIPANT:
+                    return studentDashboard(user, model);
+                case CLUB_HEAD:
+                    return clubHeadDashboard(user, model);
+                case ADMIN:
+                    return adminDashboard(model);
+                default:
+                    return "redirect:/auth/login";
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
+            return "error/not-found";
         }
     }
 
@@ -120,6 +125,7 @@ public class DashboardController {
             model.addAttribute("approvedEvents", approvedEvents.size());
             model.addAttribute("totalRegistrations", totalRegistrations);
             model.addAttribute("events", events);
+            model.addAttribute("approvedEventsList", eventService.getUpcomingApprovedEvents());
 
             return "dashboard/clubhead-dashboard";
         } catch (Exception e) {
@@ -146,6 +152,7 @@ public class DashboardController {
             long pendingUserCount = userService.getPendingUserCount();
 
             var pendingEvents = eventService.getPendingEvents();
+            var approvedEventsList = eventService.getUpcomingApprovedEvents();
             var clubs = clubService.getAllActiveClubs();
 
             model.addAttribute("pendingEventCount", pendingEventCount);
@@ -153,6 +160,7 @@ public class DashboardController {
             model.addAttribute("completedEventCount", completedEventCount);
             model.addAttribute("pendingUserCount", pendingUserCount);
             model.addAttribute("pendingEvents", pendingEvents);
+            model.addAttribute("approvedEventsList", approvedEventsList);
             model.addAttribute("clubs", clubs);
             model.addAttribute("totalClubs", clubs.size());
 
